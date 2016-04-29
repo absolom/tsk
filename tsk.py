@@ -28,9 +28,9 @@ class Tsk:
         ntask = Task(summary, description)
         if ntask in self.tasks:
             return False
-        self.tasks.append(ntask)
-        nid = len(self.tasks)
+        nid = len(self.tasks)+1
         self.task_ids.append(nid)
+        self.tasks.append(ntask)
         return (True, nid)
 
     def list_tasks(self):
@@ -237,11 +237,14 @@ class TaskIdTest(unittest.TestCase):
     def setUp(self):
         self.tsk = Tsk()
 
-    def test_task_ids_are_sequential(self):
-        None
+    def test_task_ids_start_from_1(self):
+        _ , id = self.tsk.add("Task")
+        self.assertEquals(1, id)
 
-    def test_task_ids_are_hexadecimal(self):
-        None
+    def test_task_ids_are_sequential(self):
+        for i in range(1, 11):
+            _ , id = self.tsk.add("Task%d" % i)
+            self.assertEquals(id, i)
 
 class StringsTest(unittest.TestCase):
     def setUp(self):
