@@ -8,6 +8,7 @@ class Task:
         self.active = False
         self.blocked = False
         self.blocked_reason = None
+        self.id = None
 
     def __eq__(self, other):
         return self.summary == other.summary and self.description == other.description
@@ -22,14 +23,13 @@ class Tsk:
     def __init__(self):
         self.tasks = []
         self.active_id = None
-        self.task_ids = []
 
     def add(self, summary, description=""):
         ntask = Task(summary, description)
         if ntask in self.tasks:
             return False
         nid = len(self.tasks)+1
-        self.task_ids.append(nid)
+        ntask.id = nid
         self.tasks.append(ntask)
         return (True, nid)
 
@@ -37,9 +37,10 @@ class Tsk:
         return self.tasks
 
     def set_blocked(self, id, reason=""):
-        if not id in self.task_ids:
+        task_ids = [x.id for x in self.tasks]
+        if not id in task_ids:
             return False
-        index = self.task_ids.index(id)
+        index = task_ids.index(id)
         task = self.tasks[index]
         task.blocked = True
         task.blocked_reason = reason
@@ -49,16 +50,14 @@ class Tsk:
         return self.active_id
 
     def set_backlog_position(self, id, pos):
-        if pos > len(self.task_ids):
+        if pos > len(self.tasks):
             return False
 
-        if not id in self.task_ids:
+        task_ids = [x.id for x in self.tasks]
+        if not id in task_ids:
             return False
 
-        index = self.task_ids.index(id)
-        self.task_ids.remove(id)
-        self.task_ids.insert(pos, id)
-
+        index = task_ids.index(id)
         task = self.tasks[index]
         self.tasks.remove(task)
         self.tasks.insert(pos, task)
@@ -66,15 +65,16 @@ class Tsk:
         return True
 
     def set_active(self, id):
-        if not id in self.task_ids:
+        task_ids = [x.id for x in self.tasks]
+        if not id in task_ids:
             return False
 
         if self.active_id:
-            index = self.task_ids.index(self.active_id)
+            index = task_ids.index(self.active_id)
             task = self.tasks[index]
             task.active = False
 
-        index = self.task_ids.index(id)
+        index = task_ids.index(id)
         task = self.tasks[index]
         task.active = True
         self.active_id = id
@@ -82,7 +82,8 @@ class Tsk:
         return True
 
     def get_task(self, id):
-        index = self.task_ids.index(id)
+        task_ids = [x.id for x in self.tasks]
+        index = task_ids.index(id)
         task = self.tasks[index]
         return task
 
