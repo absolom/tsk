@@ -24,6 +24,27 @@ class Tsk:
         self.tasks = []
         self.active_id = None
 
+    def get_active_string(self):
+        if self.active_id == None:
+            return "No Active Task."
+
+        active_task = self.get_task(self.active_id)
+        return "{:s}\n{:<3x}   {:s}".format("Active Task", self.active_id, active_task.summary)
+
+    def get_backlog_string(self):
+        ret = "Backlog\n"
+        output = 0
+        for i, task in enumerate(self.tasks):
+            if task.is_active():
+                continue
+            ret += "{:<3x}   {:s}\n".format(task.id, task.summary)
+            output += 1
+            if output > 3:
+                ret += "... {:d} More".format(len(self.tasks) - i)
+                break
+
+        return ret
+
     def add(self, summary, description=""):
         ntask = Task(summary, description)
         if ntask in self.tasks:
@@ -155,22 +176,31 @@ class TaskStateTest(unittest.TestCase):
     def setUp(self):
         self.tsk = Tsk()
 
-    def test_open_task(self):
+    def test_open_closed_task(self):
         None
 
-    def test_close_task(self):
+    def test_open_open_task(self):
+        None
+
+    def test_open_active_task(self):
+        None
+
+    def test_close_open_task(self):
+        None
+
+    def test_close_closed_task(self):
         None
 
     def test_close_active_task(self):
         None
 
-    def test_active_state(self):
+    def test_set_active_flags_task_as_active(self):
         _ , id = self.tsk.add("Task1")
         self.tsk.set_active(id)
         task = self.tsk.get_task(id)
         self.assertTrue(task.is_active())
 
-    def test_only_one_active(self):
+    def test_only_one_active_task_at_a_time(self):
         _ , id = self.tsk.add("Task1")
         _ , id2 = self.tsk.add("Task2")
         self.tsk.set_active(id)
@@ -250,12 +280,46 @@ class TaskIdTest(unittest.TestCase):
 class StringsTest(unittest.TestCase):
     def setUp(self):
         self.tsk = Tsk()
+        self.tsk.add("Task1")
+        self.tsk.add("Task2", "Task2 Description")
+        self.tsk.add("Task3")
+        self.tsk.add("Task4", "Task4 Description")
 
-    def test_verify_status_string(self):
-        None
+        for i in range(5, 15):
+            self.tsk.add("Task%d" % i)
 
-    def test_backlog_string(self):
-        None
+    def test_get_active_string_no_active(self):
+        status_active_truth = """No Active Task."""
+        self.assertEquals(status_active_truth, self.tsk.get_active_string())
+
+    def test_get_active_string_with_active(self):
+        self.tsk.set_active(1)
+        status_active_truth = """Active Task
+1     Task1"""
+        self.assertEquals(status_active_truth, self.tsk.get_active_string())
+
+    def test_get_backlog(self):
+        backlog_truth = """Backlog
+1     Task1
+2     Task2
+3     Task3
+4     Task4
+... 11 More"""
+        self.assertEquals(backlog_truth, self.tsk.get_backlog_string())
+
+    def test_get_backlog_with_active(self):
+        self.tsk.set_active(3)
+        backlog_truth = """Backlog
+1     Task1
+2     Task2
+4     Task4
+5     Task5
+... 10 More"""
+        self.assertEquals(backlog_truth, self.tsk.get_backlog_string())
+
+    def test_get_backlog_none(self):
+        self.tsk = Tsk()
+        self.assertEquals("Backlog\n", self.tsk.get_backlog_string())
 
 if __name__ == '__main__':
     unittest.main()
