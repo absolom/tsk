@@ -5,45 +5,68 @@ class Task:
     def __init__(self, summary, description):
         self.summary = summary
         self.description = description
-        self.active = False
-        self.blocked = False
         self.blocked_reason = None
         self.id = None
+        self.state = "Open"
 
     def __eq__(self, other):
         return self.summary == other.summary and self.description == other.description
 
     def is_active(self):
-        return self.active
+        return self.state == "Active"
 
     def is_blocked(self):
-        return self.blocked
+        return self.state == "Blocked"
+
+    def is_closed(self):
+        return self.state == "Closed"
+
+    def is_open(self):
+        return self.state == "Open"
+
+    def close(self):
+        self.state = "Closed"
+
+    def open(self):
+        self.state = "Open"
+
+    def block(self, reason):
+        self.state = "Blocked"
+        self.blocked_reason = reason
+
+    def activate(self):
+        self.state = "Active"
+
+class TskFrontEnd:
+    def __init__(self, tsk):
+        self.tsk = tsk
+
+    def get_active_string(self):
+        if self.tsk.get_active() == None:
+            return "No Active Task."
+
+        active_task = self.tsk.get_task(self.tsk.get_active())
+        return "{:s}\n{:<3x}   {:s}".format("Active Task", self.tsk.get_active(), active_task.summary)
+
+    def get_backlog_string(self):
+        ret = "Backlog\n"
+        output = 0
+        for i, task in enumerate(self.tsk.list_tasks()):
+            if task.is_active():
+                continue
+            ret += "{:<3x}   {:s}\n".format(task.id, task.summary)
+            output += 1
+            if output > 3:
+                ret += "... {:d} More".format(len(self.tsk.list_tasks()) - i)
+                break
+
+        return ret
 
 class Tsk:
     def __init__(self):
         self.tasks = []
         self.active_id = None
 
-    def get_active_string(self):
-        if self.active_id == None:
-            return "No Active Task."
-
-        active_task = self.get_task(self.active_id)
-        return "{:s}\n{:<3x}   {:s}".format("Active Task", self.active_id, active_task.summary)
-
-    def get_backlog_string(self):
-        ret = "Backlog\n"
-        output = 0
-        for i, task in enumerate(self.tasks):
-            if task.is_active():
-                continue
-            ret += "{:<3x}   {:s}\n".format(task.id, task.summary)
-            output += 1
-            if output > 3:
-                ret += "... {:d} More".format(len(self.tasks) - i)
-                break
-
-        return ret
 
     def add(self, summary, description=""):
         ntask = Task(summary, description)
@@ -54,6 +77,10 @@ class Tsk:
         self.tasks.append(ntask)
         return (True, nid)
 
+    def set_closed(self, id):
+        task = self.get_task(id)
+        task.close()
+
     def list_tasks(self):
         return self.tasks
 
@@ -63,8 +90,7 @@ class Tsk:
             return False
         index = task_ids.index(id)
         task = self.tasks[index]
-        task.blocked = True
-        task.blocked_reason = reason
+        task.block(reason)
         return True
 
     def get_active(self):
@@ -93,11 +119,11 @@ class Tsk:
         if self.active_id:
             index = task_ids.index(self.active_id)
             task = self.tasks[index]
-            task.active = False
+            task.open()
 
         index = task_ids.index(id)
         task = self.tasks[index]
-        task.active = True
+        task.activate()
         self.active_id = id
 
         return True
@@ -109,6 +135,74 @@ class Tsk:
         return task
 
 class TaskTest(unittest.TestCase):
+    def setUp(self):
+        self.task = Task("Task1", "")
+
+    def test_default_is_open(self):
+        self.assertTrue(self.task.is_open())
+
+    def test_open_to_closed(self):
+        self.task.close()
+        self.assertTrue(self.task.is_closed())
+        self.assertFalse(self.task.is_open())
+
+    def test_open_to_blocked(self):
+        self.task.block("Reason")
+        self.assertFalse(self.task.is_open())
+        self.assertTrue(self.task.is_blocked())
+        self.assertEquals("Reason", self.task.blocked_reason)
+
+    def test_open_to_active(self):
+        self.task.activate()
+        self.assertFalse(self.task.is_open())
+        self.assertTrue(self.task.is_active())
+
+    def test_closed_to_open(self):
+        self.task.close()
+        self.assertFalse(self.task.is_open())
+        self.assertTrue(self.task.is_closed())
+
+    def test_blocked_to_open(self):
+        self.task.block("Reason")
+        self.task.open()
+        self.assertFalse(self.task.is_blocked())
+        self.assertTrue(self.task.is_open())
+
+    def test_blocked_to_closed(self):
+        self.task.block("Reason")
+        self.task.close()
+        self.assertFalse(self.task.is_blocked())
+        self.assertTrue(self.task.is_closed())
+
+    def test_blocked_to_active(self):
+        self.task.block("Reason")
+        self.task.activate()
+        self.assertFalse(self.task.is_blocked())
+        self.assertTrue(self.task.is_active())
+
+    def test_active_to_closed(self):
+        self.task.activate()
+        self.task.close()
+        self.assertFalse(self.task.is_active())
+        self.assertTrue(self.task.is_closed())
+
+    def test_active_to_open(self):
+        self.task.activate()
+        self.task.open()
+        self.assertFalse(self.task.is_active())
+        self.assertTrue(self.task.is_open())
+
+    def test_active_to_blocked(self):
+        self.task.activate()
+        self.task.block("Reason")
+        self.assertFalse(self.task.is_active())
+        self.assertTrue(self.task.is_blocked())
+
+    def test_set_blocked_reason(self):
+        self.task.block("Reason")
+        self.assertEquals("Reason", self.task.blocked_reason)
+
+class TskTest(unittest.TestCase):
 
     def setUp(self):
         self.tsk = Tsk()
@@ -186,7 +280,10 @@ class TaskStateTest(unittest.TestCase):
         None
 
     def test_close_open_task(self):
-        None
+        _ , id = self.tsk.add("Task1")
+        self.tsk.set_closed(id)
+        task = self.tsk.get_task(id)
+        self.assertTrue(task.is_closed())
 
     def test_close_closed_task(self):
         None
@@ -288,15 +385,17 @@ class StringsTest(unittest.TestCase):
         for i in range(5, 15):
             self.tsk.add("Task%d" % i)
 
+        self.tskfe = TskFrontEnd(self.tsk)
+
     def test_get_active_string_no_active(self):
         status_active_truth = """No Active Task."""
-        self.assertEquals(status_active_truth, self.tsk.get_active_string())
+        self.assertEquals(status_active_truth, self.tskfe.get_active_string())
 
     def test_get_active_string_with_active(self):
         self.tsk.set_active(1)
         status_active_truth = """Active Task
 1     Task1"""
-        self.assertEquals(status_active_truth, self.tsk.get_active_string())
+        self.assertEquals(status_active_truth, self.tskfe.get_active_string())
 
     def test_get_backlog(self):
         backlog_truth = """Backlog
@@ -305,7 +404,7 @@ class StringsTest(unittest.TestCase):
 3     Task3
 4     Task4
 ... 11 More"""
-        self.assertEquals(backlog_truth, self.tsk.get_backlog_string())
+        self.assertEquals(backlog_truth, self.tskfe.get_backlog_string())
 
     def test_get_backlog_with_active(self):
         self.tsk.set_active(3)
@@ -315,11 +414,11 @@ class StringsTest(unittest.TestCase):
 4     Task4
 5     Task5
 ... 10 More"""
-        self.assertEquals(backlog_truth, self.tsk.get_backlog_string())
+        self.assertEquals(backlog_truth, self.tskfe.get_backlog_string())
 
     def test_get_backlog_none(self):
-        self.tsk = Tsk()
-        self.assertEquals("Backlog\n", self.tsk.get_backlog_string())
+        self.tskfe = TskFrontEnd(Tsk())
+        self.assertEquals("Backlog\n", self.tskfe.get_backlog_string())
 
 if __name__ == '__main__':
     unittest.main()
