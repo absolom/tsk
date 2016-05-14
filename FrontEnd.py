@@ -4,10 +4,6 @@ from Render import TskTextRender, PomoRender
 from OpenDouble import OpenDouble
 from FileDouble import FileDouble
 
-# TODO: Persistence
-# TODO: Command line parsing
-# TODO: ...
-
 class TskFrontEnd:
     def __init__(self, tsk=None, pomo=None, renderTsk=None, renderPomo=None,
                  time=None, subprocess=None, fileParser=None):
@@ -25,11 +21,14 @@ class TskFrontEnd:
         if not task:
             return "Task {:d} could not be found.".format(id)
         self.fileParser.set_filename(filename)
-        self.fileParser.create_file(task.summary, task.description)
+        if not self.fileParser.create_file(task.summary, task.description):
+            return "Temp file could not be created."
         if self.subprocess.call('vim {:s}'.format(filename)) != 0:
             return "Editor could not be invoked."
-        self.fileParser.load_file()
-        self.fileParser.parse()
+        if not self.fileParser.load_file():
+            return "Temp file could not be loaded."
+        if not self.fileParser.parse():
+            return "Temp file could not be parsed."
         task.summary = self.fileParser.summary
         task.description = self.fileParser.description
         return "Task {:d} has been updated.".format(id)
@@ -39,9 +38,9 @@ class TskFrontEnd:
         return "Task {:d} added.".format(id)
 
     def status(self):
-        ret = self.renderPomo.get_status_string(0)
-        ret += self.renderTsk.get_active_string()
-        ret += self.renderTsk.get_blocked_summary_string()
+        ret = "\n" + self.renderPomo.get_status_string(0) + "\n"
+        ret += self.renderTsk.get_active_string() + "\n"
+        ret += self.renderTsk.get_blocked_summary_string() + "\n"
         ret += self.renderTsk.get_backlog_summary_string()
         return ret
 
@@ -85,6 +84,12 @@ class TskFrontEnd:
         else:
             return "Pomodoro timer could not be canceled."
 
+    def activate(self, id):
+        if self.tsk.set_active(id):
+            return "Task {:d} activated.".format(id)
+        else:
+            return "Failed to activate task {:d}.".format(id)
+
 #### Test Doubles
 
 class TaskFileParserDouble:
@@ -96,6 +101,9 @@ class TaskFileParserDouble:
         self.load_file_called = False
         self.parse_called = False
         self.set_filename_filename = None
+        self.create_file_fail = False
+        self.load_file_fail = False
+        self.parse_fail = False
 
     def set_filename(self, filename):
         self.set_filename_called = True
@@ -105,18 +113,30 @@ class TaskFileParserDouble:
         self.create_file_called = True
         self.create_file_summary = summary
         self.create_file_description = description
+        return not self.create_file_fail
 
     def load_file(self):
         self.load_file_called = True
+        return not self.load_file_fail
 
     def parse(self):
         self.parse_called = True
+        return not self.parse_fail
 
     def set_summary(self, summary):
         self.summary = summary
 
     def set_description(self, description):
         self.description = description
+
+    def set_create_file_fail(self):
+        self.create_file_fail = True
+
+    def set_load_file_fail(self):
+        self.load_file_fail = True
+
+    def set_parse_fail(self):
+        self.parse_fail = True
 
 class PomoRenderDouble:
     def __init__(self):
@@ -187,6 +207,9 @@ class TskDouble:
         self.add_description = description
         self.task = self.TaskDouble(summary, description)
         return (True, 1)
+
+    def set_active(self, id):
+        return id == 10
 
     def set_open(self, id):
         return id == 10
@@ -261,7 +284,8 @@ class WriteDouble:
         self.mode = mode
 
 openDouble = OpenDouble()
-open = openDouble
+if __name__ == '__main__':
+    open = openDouble
 
 #### Test Code
 
@@ -286,7 +310,7 @@ class TskFrontEndTest(unittest.TestCase):
     def test_status(self):
         resp = self.fe.status()
 
-        self.assertEquals("Pomo\nActive\nBlocked\nBacklog\n", resp)
+        self.assertEquals("\nPomo\n\nActive\n\nBlocked\n\nBacklog\n", resp)
         self.assertTrue(self.dbl1.get_active_string_called)
         self.assertTrue(self.dbl1.get_blocked_summary_string_called)
         self.assertTrue(self.dbl1.get_backlog_summary_string_called)
@@ -324,6 +348,14 @@ class TskFrontEndTest(unittest.TestCase):
     def test_close_fail(self):
         ret = self.fe.close(11)
         self.assertEquals("Failed to close task 11.", ret)
+
+    def test_activate(self):
+        ret = self.fe.activate(10)
+        self.assertEquals("Task 10 activated.", ret)
+
+    def test_activate_fail(self):
+        ret = self.fe.activate(11)
+        self.assertEquals("Failed to activate task 11.", ret)
 
 class TskFrontEndTest_EditCommand(unittest.TestCase):
     def setUp(self):
@@ -387,16 +419,19 @@ class TskFrontEndTest_EditCommand(unittest.TestCase):
         self.assertEquals("Editor could not be invoked.", ret)
 
     def test_edit_file_create_fails(self):
+        self.tfpDouble.set_create_file_fail()
         self.fe.add_task("Task1Summary", "Task1Description")
         ret = self.fe.edit_task(1)
         self.assertEquals("Temp file could not be created.", ret)
 
     def test_edit_file_load_fails(self):
+        self.tfpDouble.set_load_file_fail()
         self.fe.add_task("Task1Summary", "Task1Description")
         ret = self.fe.edit_task(1)
         self.assertEquals("Temp file could not be loaded.", ret)
 
     def test_edit_file_parse_fails(self):
+        self.tfpDouble.set_parse_fail()
         self.fe.add_task("Task1Summary", "Task1Description")
         ret = self.fe.edit_task(1)
         self.assertEquals("Temp file could not be parsed.", ret)

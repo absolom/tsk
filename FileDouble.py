@@ -20,9 +20,9 @@ class FileDouble:
 
     def readline(self):
         if not self.contents:
-            return None
+            return ""
         if self.index < len(self.contents):
-            ret = self.contents[self.index]
+            ret = self.contents[self.index] + "\n"
             self.index += 1
             return ret
-        return None
+        return ""

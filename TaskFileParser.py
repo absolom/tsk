@@ -4,7 +4,8 @@ from OpenDouble import OpenDouble
 from FileDouble import FileDouble
 
 openDouble = OpenDouble()
-open = openDouble
+if __name__ == '__main__':
+    open = openDouble
 
 class TaskFileParser:
     def __init__(self):
@@ -29,7 +30,7 @@ class TaskFileParser:
         if not f:
             return False
         line = f.readline()
-        while line != None:
+        while line != "":
             self.lines.append(line)
             line = f.readline()
         f.close()

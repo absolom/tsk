@@ -1,6 +1,6 @@
 import unittest
 import math
-from tsk import Tsk
+from TskLogic import TskLogic
 from Pomo import Pomo
 
 class PomoRender:
@@ -65,7 +65,7 @@ class TskTextRender:
 
 class StringsTest(unittest.TestCase):
     def setUp(self):
-        self.tsk = Tsk()
+        self.tsk = TskLogic()
         self.tsk.add("Task1")
         self.tsk.add("Task2", "Task2 Description")
         self.tsk.add("Task3")
@@ -87,7 +87,7 @@ class StringsTest(unittest.TestCase):
         self.assertEquals(status_active_truth, self.tskfe.get_active_string())
 
     def test_get_backlog_summary(self):
-        self.tsk = Tsk()
+        self.tsk = TskLogic()
         self.tsk.add("Task1")
         self.tsk.add("Task2", "Task2 Description")
         self.tskfe = TskTextRender(self.tsk)
@@ -116,7 +116,7 @@ class StringsTest(unittest.TestCase):
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string())
 
     def test_get_backlog_summary_none(self):
-        self.tskfe = TskTextRender(Tsk())
+        self.tskfe = TskTextRender(TskLogic())
         self.assertEquals("Backlog", self.tskfe.get_backlog_summary_string())
 
     def test_get_backlog_summary_skips_closed(self):
