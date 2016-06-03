@@ -1,3 +1,4 @@
+#! /usr/bin/python
 from FrontEnd import TskFrontEnd
 from Pomo import Pomo
 from TaskFileParser import TaskFileParser
