@@ -24,9 +24,11 @@ class Task:
         return self.state == "Open"
 
     def close(self):
+        self.blocked_reason = None
         self.state = "Closed"
 
     def open(self):
+        self.blocked_reason = None
         self.state = "Open"
         return True
 
@@ -36,6 +38,7 @@ class Task:
         return True
 
     def activate(self):
+        self.blocked_reason = None
         self.state = "Active"
         return True
 
@@ -72,18 +75,21 @@ class TaskTest(unittest.TestCase):
         self.task.open()
         self.assertFalse(self.task.is_blocked())
         self.assertTrue(self.task.is_open())
+        self.assertIsNone(self.task.blocked_reason)
 
     def test_blocked_to_closed(self):
         self.task.block("Reason")
         self.task.close()
         self.assertFalse(self.task.is_blocked())
         self.assertTrue(self.task.is_closed())
+        self.assertIsNone(self.task.blocked_reason)
 
     def test_blocked_to_active(self):
         self.task.block("Reason")
         self.task.activate()
         self.assertFalse(self.task.is_blocked())
         self.assertTrue(self.task.is_active())
+        self.assertIsNone(self.task.blocked_reason)
 
     def test_active_to_closed(self):
         self.task.activate()

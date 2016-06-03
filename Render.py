@@ -22,6 +22,8 @@ class PomoRender:
 class TskTextRender:
     def __init__(self, tsk):
         self.tsk = tsk
+        self.backlog_max = 4
+        self.blocked_max = 10
 
     def get_active_string(self):
         if self.tsk.get_active() == None:
@@ -33,17 +35,19 @@ class TskTextRender:
     def get_backlog_summary_string(self):
         ret = "Backlog"
         output = 0
+        num_in_backlog = 0
         for i, task in enumerate(self.tsk.list_tasks()):
-            if task.is_active():
+            if not task.is_open():
                 continue
-            if task.is_closed():
-                continue
-            if task.is_blocked():
+            num_in_backlog += 1
+
+        for i, task in enumerate(self.tsk.list_tasks()):
+            if not task.is_open():
                 continue
             ret += "\n{:<3x}   {:s}".format(task.id, task.summary)
             output += 1
-            if output > 3:
-                ret += "\n... {:d} More".format(len(self.tsk.list_tasks()) - i)
+            if output >= self.backlog_max:
+                ret += "\n... {:d} More".format(num_in_backlog - output)
                 break
 
         return ret
@@ -51,17 +55,29 @@ class TskTextRender:
     def get_blocked_summary_string(self):
         ret = "Blocked"
         output = 0
+        num_blocked = 0
+        for i, task in enumerate(self.tsk.list_tasks()):
+            if not task.is_blocked():
+                continue
+            num_blocked += 1
+
         for i, task in enumerate(self.tsk.list_tasks()):
             if not task.is_blocked():
                 continue
 
             ret += "\n{:<3x}   {:s}   {:s}".format(task.id, task.summary, task.blocked_reason)
             output += 1
-            if output > 3:
-                ret += "\n... {:d} More".format(len(self.tsk.list_tasks()) - i)
+            if output >= self.blocked_max:
+                ret += "\n... {:d} More".format(num_blocked - output)
                 break
 
         return ret
+
+    def set_backlog_max(self, max):
+        self.backlog_max = max
+
+    def set_blocked_max(self, max):
+        self.blocked_max = max
 
 class StringsTest(unittest.TestCase):
     def setUp(self):
@@ -71,10 +87,12 @@ class StringsTest(unittest.TestCase):
         self.tsk.add("Task3")
         self.tsk.add("Task4", "Task4 Description")
 
-        for i in range(5, 15):
+        for i in range(5, 25):
             self.tsk.add("Task%d" % i)
 
         self.tskfe = TskTextRender(self.tsk)
+        self.tskfe.set_backlog_max(4)
+        self.tskfe.set_blocked_max(4)
 
     def test_get_active_string_no_active(self):
         status_active_truth = """No Active Task."""
@@ -102,7 +120,9 @@ class StringsTest(unittest.TestCase):
 2     Task2
 3     Task3
 4     Task4
-... 11 More"""
+5     Task5
+... 19 More"""
+        self.tskfe.set_backlog_max(5)
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string())
 
     def test_get_backlog_summary_with_active(self):
@@ -112,7 +132,7 @@ class StringsTest(unittest.TestCase):
 2     Task2
 4     Task4
 5     Task5
-... 10 More"""
+... 19 More"""
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string())
 
     def test_get_backlog_summary_none(self):
@@ -122,23 +142,25 @@ class StringsTest(unittest.TestCase):
     def test_get_backlog_summary_skips_closed(self):
         self.tsk.set_closed(3)
         self.tsk.set_closed(5)
+        self.tsk.set_closed(21)
         backlog_truth = """Backlog
 1     Task1
 2     Task2
 4     Task4
 6     Task6
-... 9 More"""
+... 17 More"""
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string())
 
     def test_get_backlog_summary_skips_blocked(self):
         self.tsk.set_blocked(3, "Reason")
         self.tsk.set_blocked(5, "Reason")
+        self.tsk.set_blocked(21, "Reason")
         backlog_truth = """Backlog
 1     Task1
 2     Task2
 4     Task4
 6     Task6
-... 9 More"""
+... 17 More"""
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string())
 
     def test_get_blocked_status(self):
@@ -156,12 +178,23 @@ class StringsTest(unittest.TestCase):
     def test_get_blocked_status_overflow(self):
         for i in range(1,15):
             self.tsk.set_blocked(i, "Reason{:d}".format(i))
+        self.tsk.set_open(2)
+        blocked_truth = """Blocked
+1     Task1   Reason1
+3     Task3   Reason3
+4     Task4   Reason4
+5     Task5   Reason5
+... 9 More"""
+        self.assertEquals(blocked_truth, self.tskfe.get_blocked_summary_string())
+
+    def test_get_blocked_status_overflow_different_max(self):
+        for i in range(1,15):
+            self.tsk.set_blocked(i, "Reason{:d}".format(i))
+        self.tskfe.set_blocked_max(2)
         blocked_truth = """Blocked
 1     Task1   Reason1
 2     Task2   Reason2
-3     Task3   Reason3
-4     Task4   Reason4
-... 11 More"""
+... 12 More"""
         self.assertEquals(blocked_truth, self.tskfe.get_blocked_summary_string())
 
 class PomoStringsTest(unittest.TestCase):

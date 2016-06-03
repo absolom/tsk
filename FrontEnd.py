@@ -14,6 +14,7 @@ class TskFrontEnd:
         self.time = time
         self.subprocess = subprocess
         self.fileParser = fileParser
+        self.renderTsk.set_backlog_max(20)
 
     def edit_task(self, id):
         filename = '/tmp/tsk.tmp'
@@ -23,7 +24,7 @@ class TskFrontEnd:
         self.fileParser.set_filename(filename)
         if not self.fileParser.create_file(task.summary, task.description):
             return "Temp file could not be created."
-        if self.subprocess.call('vim {:s}'.format(filename)) != 0:
+        if self.subprocess.call('vim {:s}'.format(filename), shell=True) != 0:
             return "Editor could not be invoked."
         if not self.fileParser.load_file():
             return "Temp file could not be loaded."
@@ -158,6 +159,8 @@ class TskTextRenderDouble:
         self.get_active_string_response = ""
         self.get_backlog_summary_string_response = ""
         self.get_blocked_summary_string_response = ""
+        self.set_backlog_max_max = None
+        self.set_backlog_max_called = False
 
     def set_get_active_string_response(self, resp):
         self.get_active_string_response = resp
@@ -179,6 +182,10 @@ class TskTextRenderDouble:
     def get_blocked_summary_string(self):
         self.get_blocked_summary_string_called = True
         return self.get_blocked_summary_string_response
+
+    def set_backlog_max(self, max):
+        self.set_backlog_max_called = True
+        self.set_backlog_max_max = max
 
 class TskDouble:
     class TaskDouble:
@@ -266,8 +273,9 @@ class SubprocessDouble:
         self.vim_edits = None
         self.call_fail = False
 
-    def call(self, command):
+    def call(self, command, shell=None):
         self.call_command = command
+        self.call_shell = shell
         if self.call_fail:
             return 1
         return 0
@@ -302,6 +310,9 @@ class TskFrontEndTest(unittest.TestCase):
         self.time = TimeDouble()
 
         self.fe = TskFrontEnd(self.tsk, self.pomo, self.dbl1, self.dbl2, self.time, None, None)
+
+    def test_sets_backlog_max(self):
+        self.assertTrue(self.dbl1.set_backlog_max_called)
 
     def test_add_task(self):
         msg = self.fe.add_task("Task1Summary", "Task1Description")
@@ -397,6 +408,7 @@ class TskFrontEndTest_EditCommand(unittest.TestCase):
         self.fe.add_task("Task1Summary", "Task1Description")
         self.fe.edit_task(1)
         self.assertEquals("vim /tmp/tsk.tmp", self.subprocess.call_command)
+        self.assertTrue(self.subprocess.call_shell)
 
     def test_edit_opens_tmp_file_post_edit(self):
         self.fe.add_task("Task1Summary", "Task1Description")
