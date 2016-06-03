@@ -95,12 +95,16 @@ class Storage:
                 else:
                     summary += line
             elif state == 6:
-                if re.match("#### Task", line):
+                if re.match("#### Task", line) or re.match("#### Pomodoro", line):
                     newtask.description = description.strip()
                     state = 0
                     self.tasks.append(newtask)
-                    newtask = Task("", "")
-                    state = 1
+                    if re.match("#### Task", line):
+                        state = 1
+                        newtask = Task("", "")
+                    else:
+                        state = 7
+                        newpomo = Pomo()
                 else:
                     description += line
             elif state == 7:
@@ -309,6 +313,40 @@ Task4Description
         self.assertTrue(storage.pomo.is_paused())
         self.assertEqual(1001, storage.pomo.get_remaining_time(timeDouble.time()))
 
+    def test_load_task_and_pomo(self):
+        timeDouble = TimeDouble()
+
+        fileDouble = FileDouble()
+        fileDouble.set_contents("""
+#### Task
+## State: Blocked
+## Blocked Reason
+BlockedReason
+## Id: 8
+## Summary
+Task8
+## Description
+Task8Description
+#### Pomodoro
+## Time Remaining: 1001
+## Running: false
+""")
+        openDouble.reset()
+        openDouble.add_file(fileDouble)
+
+        storage = Storage(timeDouble)
+        self.assertTrue(storage.load('test_file'))
+
+        self.assertEqual("Task8", storage.tasks[0].summary)
+        self.assertEqual(8, storage.tasks[0].id)
+        self.assertEqual("Task8Description", storage.tasks[0].description)
+        self.assertTrue(storage.tasks[0].is_blocked)
+        self.assertEqual("BlockedReason", storage.tasks[0].blocked_reason)
+
+        self.assertTrue(storage.pomo.is_paused())
+        self.assertEqual(1001, storage.pomo.get_remaining_time(timeDouble.time()))
+
+
     def test_load_running_pomo(self):
         timeDouble = TimeDouble()
 
@@ -372,6 +410,53 @@ Multiline
 Task2
 ## Description
 Task2Description
+""", fileDouble.written_data)
+
+    def test_save_tasks_and_pomo(self):
+        storage = Storage(TimeDouble())
+
+        pomo = Pomo()
+        storage.pomo = pomo
+
+        task = Task("Task1", "Task1Description word\nMultiline")
+        task.id = 1
+        task.state = "Blocked"
+        task.blocked_reason = "BlockedReason"
+        storage.tasks.append(task)
+
+        task = Task("Task2", "Task2Description")
+        task.id = 2
+        task.state = "Closed"
+        storage.tasks.append(task)
+
+        openDouble.reset()
+        fileDouble = FileDouble()
+        openDouble.add_file(fileDouble)
+
+        storage.save('test_file')
+        self.assertEqual('test_file', openDouble.filename[0])
+        self.assertEqual('w+', openDouble.mode[0])
+        self.assertEqual("""#### Task
+## State: Blocked
+## Blocked Reason
+BlockedReason
+## Id: 1
+## Summary
+Task1
+## Description
+Task1Description word
+Multiline
+#### Task
+## State: Closed
+## Blocked Reason
+## Id: 2
+## Summary
+Task2
+## Description
+Task2Description
+#### Pomodoro
+## Time Remaining: 1500.000000
+## Running: false
 """, fileDouble.written_data)
 
     def test_save_paused_pomo(self):
