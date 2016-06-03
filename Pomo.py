@@ -1,5 +1,6 @@
 import unittest
 import time
+from TimeDouble import TimeDouble
 
 class Pomo:
     def __init__(self):
@@ -14,11 +15,14 @@ class Pomo:
             return True
         return False
 
+    def set_remaining_time(self, t):
+        self.elapsed = 25.0*60.0 - t
+
     def get_remaining_time(self, t):
         elapsed_this_lap = 0
         if self.running:
             elapsed_this_lap = t - self.start_time
-        remaining_time = 25*60 - round(self.elapsed + elapsed_this_lap)
+        remaining_time = 25*60 - (self.elapsed + elapsed_this_lap)
         if remaining_time < 0:
             remaining_time = 0
         return remaining_time
@@ -27,9 +31,12 @@ class Pomo:
         if self.running:
             self.elapsed += t - self.start_time
             self.running = False
+            return True
+        return False
 
     def cancel(self):
         self.__init__()
+        return True
 
     def is_paused(self):
         return not self.running
@@ -70,13 +77,13 @@ class PomoTest_StartAndRun(unittest.TestCase):
         self.pomo.start(0.0)
         self.assertEquals(25*60 - 3, self.pomo.get_remaining_time(3.0))
 
-    def test_remaining_time_rounds_up(self):
+    def test_remaining_time_no_round_up(self):
         self.pomo.start(0.0)
-        self.assertEquals(25*60 - 3, self.pomo.get_remaining_time(2.5))
+        self.assertEquals(25*60 - 2.5, self.pomo.get_remaining_time(2.5))
 
-    def test_remaining_time_rounds_down(self):
+    def test_remaining_time_no_rounds_down(self):
         self.pomo.start(0.0)
-        self.assertEquals(25*60 - 3, self.pomo.get_remaining_time(3.49))
+        self.assertEquals(25*60 - 3.49, self.pomo.get_remaining_time(3.49))
 
     def test_remaining_time_finished(self):
         self.pomo.start(0)
@@ -86,6 +93,10 @@ class PomoTest_StartAndRun(unittest.TestCase):
         self.assertTrue(self.pomo.start(0.0))
         self.assertFalse(self.pomo.start(3.0))
         self.assertEquals(25*60 - 6, self.pomo.get_remaining_time(6.0))
+
+    def test_set_remaining_time(self):
+        self.pomo.set_remaining_time(10.1)
+        self.assertAlmostEquals(10.1, self.pomo.get_remaining_time(0))
 
 class PomoTest_Expired(unittest.TestCase):
     def setUp(self):

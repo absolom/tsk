@@ -13,12 +13,15 @@ import os.path
 
 tsk = TskLogic()
 pomo = Pomo()
-fe = TskFrontEnd(tsk, pomo, TskTextRender(tsk), PomoRender(pomo), time, subprocess, TaskFileParser())
 
 if os.path.isfile('.tskfile'):
-    storage = Storage()
+    storage = Storage(time)
     if storage.load('.tskfile'):
         tsk.tasks = storage.tasks
+        if storage.pomo:
+            pomo = storage.pomo
+
+fe = TskFrontEnd(tsk, pomo, TskTextRender(tsk), PomoRender(pomo), time, subprocess, TaskFileParser())
 
 valid_commands = [ "edit_task",
                    "add_task",
@@ -89,6 +92,7 @@ elif args.command == "pause":
 elif args.command == "cancel":
     print fe.cancel()
 
-storage = Storage()
+storage = Storage(time)
 storage.tasks = tsk.tasks
+storage.pomo = pomo
 storage.save('.tskfile')

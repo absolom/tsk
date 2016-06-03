@@ -2,15 +2,19 @@ import unittest
 import re
 from FileDouble import FileDouble
 from OpenDouble import OpenDouble
+from TimeDouble import TimeDouble
 from Task import Task
+from Pomo import Pomo
 
 openDouble = OpenDouble()
 if __name__ == '__main__':
     open = openDouble
 
 class Storage:
-    def __init__(self):
+    def __init__(self, time):
         self.tasks = []
+        self.pomo = None
+        self.time = time
 
     def save(self, filename):
         f = open(filename, 'w+')
@@ -28,12 +32,25 @@ class Storage:
             f.write("## Description\n")
             for line in task.description.split("\n"):
                 f.write(line + "\n")
+
+        if self.pomo:
+            f.write("#### Pomodoro\n")
+            remainingTimeFloat = self.pomo.get_remaining_time(self.time.time())
+            f.write("## Time Remaining: {:f}\n".format(remainingTimeFloat))
+            f.write("## Running: ")
+            if self.pomo.is_paused():
+                f.write("false\n")
+            else:
+                f.write("true\n")
+                f.write("## Save Date: {:f}\n".format(int(self.time.time())))
+
         f.close()
 
     def load(self, filename):
         f = open(filename, 'r')
         state = 0
         newtask = None
+        newpomo = None
 
         while True:
             line = f.readline()
@@ -43,6 +60,9 @@ class Storage:
                 if re.match("#### Task", line):
                     newtask = Task("", "")
                     state = 1
+                if re.match("#### Pomodoro", line):
+                    newpomo = Pomo()
+                    state = 7
             elif state == 1:
                 mo = re.match("## State: (.*)", line)
                 if mo:
@@ -83,6 +103,29 @@ class Storage:
                     state = 1
                 else:
                     description += line
+            elif state == 7:
+                mo = re.match("## Time Remaining: (.*)", line)
+                if mo:
+                    remainingTime = float(mo.group(1))
+                    newpomo.set_remaining_time(remainingTime)
+                    self.pomo = newpomo
+                    state = 8
+            elif state == 8:
+                mo = re.match("## Running: (.*)", line)
+                if mo:
+                    if mo.group(1) == "true":
+                        state = 9
+                    else:
+                        state = 0
+            elif state == 9:
+                mo = re.match("## Save Date: (.*)", line)
+                if mo:
+                    saveDateUtc = float(mo.group(1))
+                    elapsedSinceSave = self.time.time() - saveDateUtc
+                    remainingTime = newpomo.get_remaining_time(self.time.time()) - elapsedSinceSave
+                    newpomo.set_remaining_time( remainingTime if remainingTime > 0 else 0)
+                    newpomo.start(self.time.time())
+                    state = 0
 
         if state == 6:
             newtask.description = description.strip()
@@ -91,6 +134,16 @@ class Storage:
 
         f.close()
         return state == 0
+
+# class DateTimeDouble:
+#     def __init__(self):
+#         self.utc = 0
+
+#     def set_utc(self, t):
+#         self.utc = t
+
+#     def now(self):
+        # return self.utc
 
 class StorageTest_Load(unittest.TestCase):
     def setUp(self):
@@ -129,7 +182,7 @@ Task8Description
         openDouble.reset()
         openDouble.add_file(fileDouble)
 
-        storage = Storage()
+        storage = Storage(TimeDouble())
         self.assertTrue(storage.load('test_file'))
         self.assertTrue(fileDouble.is_closed())
         self.assertEqual('test_file', openDouble.filename[0])
@@ -167,7 +220,7 @@ Task4Description
         openDouble.reset()
         openDouble.add_file(fileDouble)
 
-        storage = Storage()
+        storage = Storage(TimeDouble())
         self.assertFalse(storage.load('test_file'))
 
     def test_load_invalid_datastore_missing_summary(self):
@@ -184,7 +237,7 @@ Task4Description
         openDouble.reset()
         openDouble.add_file(fileDouble)
 
-        storage = Storage()
+        storage = Storage(TimeDouble())
         self.assertFalse(storage.load('test_file'))
 
     def test_load_invalid_datastore_missing_description(self):
@@ -201,7 +254,7 @@ Task4Description
         openDouble.reset()
         openDouble.add_file(fileDouble)
 
-        storage = Storage()
+        storage = Storage(TimeDouble())
         self.assertFalse(storage.load('test_file'))
 
     def test_load_invalid_datastore_missing_state(self):
@@ -218,7 +271,7 @@ Task4Description
         openDouble.reset()
         openDouble.add_file(fileDouble)
 
-        storage = Storage()
+        storage = Storage(TimeDouble())
         self.assertFalse(storage.load('test_file'))
 
     def test_load_invalid_datastore_missing_blocked_reason(self):
@@ -235,15 +288,53 @@ Task4Description
         openDouble.reset()
         openDouble.add_file(fileDouble)
 
-        storage = Storage()
+        storage = Storage(TimeDouble())
         self.assertFalse(storage.load('test_file'))
+
+    def test_load_pomo(self):
+        timeDouble = TimeDouble()
+
+        fileDouble = FileDouble()
+        fileDouble.set_contents("""
+#### Pomodoro
+## Time Remaining: 1001
+## Running: false
+""")
+        openDouble.reset()
+        openDouble.add_file(fileDouble)
+
+        storage = Storage(timeDouble)
+        self.assertTrue(storage.load('test_file'))
+
+        self.assertTrue(storage.pomo.is_paused())
+        self.assertEqual(1001, storage.pomo.get_remaining_time(timeDouble.time()))
+
+    def test_load_running_pomo(self):
+        timeDouble = TimeDouble()
+
+        fileDouble = FileDouble()
+        fileDouble.set_contents("""
+#### Pomodoro
+## Time Remaining: 100
+## Running: true
+## Save Date: 100
+""")
+        openDouble.reset()
+        openDouble.add_file(fileDouble)
+
+        storage = Storage(timeDouble)
+        timeDouble.set_time(110)
+        self.assertTrue(storage.load('test_file'))
+
+        self.assertFalse(storage.pomo.is_paused())
+        self.assertEqual(90, storage.pomo.get_remaining_time(timeDouble.time()))
 
 class StorageTest_Save(unittest.TestCase):
     def setUp(self):
         None
 
-    def test_save(self):
-        storage = Storage()
+    def test_save_tasks(self):
+        storage = Storage(TimeDouble())
 
         task = Task("Task1", "Task1Description word\nMultiline")
         task.id = 1
@@ -281,6 +372,48 @@ Multiline
 Task2
 ## Description
 Task2Description
+""", fileDouble.written_data)
+
+    def test_save_paused_pomo(self):
+        timeDouble = TimeDouble()
+        storage = Storage(timeDouble)
+
+        pomo = Pomo()
+        storage.pomo = pomo
+
+        openDouble.reset()
+        fileDouble = FileDouble()
+        openDouble.add_file(fileDouble)
+
+        storage.save('test_file')
+        self.assertEqual('test_file', openDouble.filename[0])
+        self.assertEqual('w+', openDouble.mode[0])
+        self.assertEqual("""#### Pomodoro
+## Time Remaining: 1500.000000
+## Running: false
+""", fileDouble.written_data)
+
+    def test_save_running_pomo(self):
+        timeDouble = TimeDouble()
+        storage = Storage(timeDouble)
+
+        pomo = Pomo()
+        storage.pomo = pomo
+
+        pomo.start(100.0)
+        timeDouble.set_time(1000.2)
+
+        openDouble.reset()
+        fileDouble = FileDouble()
+        openDouble.add_file(fileDouble)
+
+        storage.save('test_file')
+        self.assertEqual('test_file', openDouble.filename[0])
+        self.assertEqual('w+', openDouble.mode[0])
+        self.assertEqual("""#### Pomodoro
+## Time Remaining: 599.800000
+## Running: true
+## Save Date: 1000.000000
 """, fileDouble.written_data)
 
 if __name__ == '__main__':

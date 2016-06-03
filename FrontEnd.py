@@ -3,6 +3,7 @@ from TaskFileParser import TaskFileParser
 from Render import TskTextRender, PomoRender
 from OpenDouble import OpenDouble
 from FileDouble import FileDouble
+from TimeDouble import TimeDouble
 
 class TskFrontEnd:
     def __init__(self, tsk=None, pomo=None, renderTsk=None, renderPomo=None,
@@ -39,7 +40,7 @@ class TskFrontEnd:
         return "Task {:d} added.".format(id)
 
     def status(self):
-        ret = "\n" + self.renderPomo.get_status_string(0) + "\n"
+        ret = "\n" + self.renderPomo.get_status_string(self.time.time()) + "\n"
         ret += self.renderTsk.get_active_string() + "\n"
         ret += self.renderTsk.get_blocked_summary_string() + "\n"
         ret += self.renderTsk.get_backlog_summary_string()
@@ -256,16 +257,6 @@ class PomoDouble:
     def cancel(self):
         self.canceled = True
         return not self.cancel_fail
-
-class TimeDouble:
-    def __init__(self):
-        self.saved_time = 0
-
-    def set_time(self, t):
-        self.saved_time = t
-
-    def time(self):
-        return self.saved_time
 
 class SubprocessDouble:
     def __init__(self):
