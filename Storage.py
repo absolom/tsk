@@ -139,16 +139,6 @@ class Storage:
         f.close()
         return state == 0
 
-# class DateTimeDouble:
-#     def __init__(self):
-#         self.utc = 0
-
-#     def set_utc(self, t):
-#         self.utc = t
-
-#     def now(self):
-        # return self.utc
-
 class StorageTest_Load(unittest.TestCase):
     def setUp(self):
         None
