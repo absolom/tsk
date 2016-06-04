@@ -33,7 +33,8 @@ valid_commands = [ "edit_task",
                    "close",
                    "start",
                    "pause",
-                   "cancel" ]
+                   "cancel",
+                   "monitor" ]
 
 parser = argparse.ArgumentParser(description='Self task management program.')
 parser.add_argument('command',  choices=valid_commands)
@@ -91,6 +92,8 @@ elif args.command == "pause":
     print fe.pause()
 elif args.command == "cancel":
     print fe.cancel()
+elif args.command == "monitor":
+    fe.monitor()
 
 storage = Storage(time)
 storage.tasks = tsk.tasks

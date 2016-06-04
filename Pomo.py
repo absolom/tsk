@@ -44,6 +44,14 @@ class Pomo:
     def is_expired(self, t):
         return self.get_remaining_time(t) <= 0
 
+    def monitor(self, t):
+        if not self.running:
+            return False
+
+        if self.get_remaining_time(t) == 0:
+            return False
+
+        return True
 
 class PomoTest_Pause(unittest.TestCase):
     def setUp(self):

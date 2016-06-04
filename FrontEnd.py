@@ -92,6 +92,10 @@ class TskFrontEnd:
         else:
             return "Failed to activate task {:d}.".format(id)
 
+    def monitor(self):
+        while self.pomo.monitor(self.time.time()):
+            self.time.sleep(1)
+
 #### Test Doubles
 
 class TaskFileParserDouble:
@@ -236,6 +240,7 @@ class PomoDouble:
         self.pause_time = None
         self.canceled = False
         self.cancel_fail = False
+        self.monitor_count = 0
 
     def set_start_fail(self):
         self.start_fail = True
@@ -257,6 +262,13 @@ class PomoDouble:
     def cancel(self):
         self.canceled = True
         return not self.cancel_fail
+
+    def set_monitor_count(self, cnt):
+        self.monitor_count = cnt
+
+    def monitor(self, t):
+        self.monitor_count -= 1
+        return self.monitor_count > 0
 
 class SubprocessDouble:
     def __init__(self):
@@ -493,6 +505,12 @@ class TskFrontEndPomoTest(unittest.TestCase):
         self.pomo.set_cancel_fail()
         ret = self.fe.cancel()
         self.assertEquals("Pomodoro timer could not be canceled.", ret)
+
+    def test_monitor(self):
+        self.time.set_time(0)
+        self.pomo.set_monitor_count(5)
+        self.fe.monitor()
+        self.assertEquals(4, self.time.time())
 
 if __name__ == '__main__':
     unittest.main()

@@ -8,3 +8,6 @@ class TimeDouble:
 
     def time(self):
         return self.saved_time
+
+    def sleep(self, delta):
+        self.saved_time += delta
