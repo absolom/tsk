@@ -30,7 +30,7 @@ class TskTextRender:
             return "No Active Task."
 
         active_task = self.tsk.get_task(self.tsk.get_active())
-        return "{:s}\n{:<3x}   {:s}".format("Active Task", self.tsk.get_active(), active_task.summary)
+        return "{:s}\n{:<3x}   {:s}\n{:s}".format("Active Task", self.tsk.get_active(), active_task.summary, active_task.description)
 
     def get_backlog_summary_string(self):
         ret = "Backlog"
@@ -101,7 +101,14 @@ class StringsTest(unittest.TestCase):
     def test_get_active_string_with_active(self):
         self.tsk.set_active(1)
         status_active_truth = """Active Task
-1     Task1"""
+1     Task1\n"""
+        self.assertEquals(status_active_truth, self.tskfe.get_active_string())
+
+    def test_get_active_string_with_active_and_description(self):
+        self.tsk.set_active(2)
+        status_active_truth = """Active Task
+2     Task2
+Task2 Description"""
         self.assertEquals(status_active_truth, self.tskfe.get_active_string())
 
     def test_get_backlog_summary(self):
