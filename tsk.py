@@ -49,14 +49,12 @@ if args.command == "edit_task":
         parser = argparse.ArgumentParser(description='Opens text editor to edit task contents.')
         parser.add_argument('task_id', type=int)
         args = parser.parse_args(args.args)
-        print args
         print fe.edit_task(args.task_id)
 elif args.command == "add_task":
         parser = argparse.ArgumentParser(description='Adds a new task.')
         parser.add_argument('summary')
         parser.add_argument('--description', default="")
         args = parser.parse_args(args.args)
-        print args
         print fe.add_task(args.summary, args.description)
 elif args.command == "status":
         print fe.status()
@@ -67,20 +65,17 @@ elif args.command == "block":
         parser.add_argument('task_id', type=int)
         parser.add_argument('reason')
         args = parser.parse_args(args.args)
-        print args
         print fe.block(args.task_id, args.reason)
 elif args.command == "open":
         parser = argparse.ArgumentParser(description='Changes state of task to open state.')
         parser.add_argument('task_id', type=int)
         args = parser.parse_args(args.args)
-        print args
         print fe.open(args.task_id)
 elif args.command == "move":
         parser = argparse.ArgumentParser(description='Moves a task in the backlog to a new position (use +/- for relative).')
         parser.add_argument('task_id', type=int)
         parser.add_argument('new_pos')
         args = parser.parse_args(args.args)
-        print args
         if args.new_pos[0] == '+' or args.new_pos[0] == '-':
             print fe.set_position_relative(args.task_id, int(args.new_pos))
         else:
@@ -89,13 +84,11 @@ elif args.command == "activate":
         parser = argparse.ArgumentParser(description='Activates a task.')
         parser.add_argument('task_id', type=int)
         args = parser.parse_args(args.args)
-        print args
         print fe.activate(args.task_id)
 elif args.command == "close":
         parser = argparse.ArgumentParser(description='Changes state of task to closed state.')
         parser.add_argument('task_id', type=int)
         args = parser.parse_args(args.args)
-        print args
         print fe.close(args.task_id)
 elif args.command == "start":
         print fe.start()
