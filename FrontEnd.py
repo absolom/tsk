@@ -56,6 +56,21 @@ class TskFrontEnd:
 
         return "Failed to mark task {:d} blocked.".format(id)
 
+    def set_position(self, id, pos):
+        if self.tsk.set_backlog_position(id, pos):
+            return "Task {:d} moved to position {:d}.".format(id, pos)
+
+        return "Failed to move task {:d}."
+
+    def set_position_relative(self, id, offset):
+        if self.tsk.set_backlog_position_relative(id, offset):
+            if offset >= 0:
+                return "Task {:d} moved {:d} up.".format(id, offset)
+            else:
+                return "Task {:d} moved {:d} down.".format(id, offset)
+
+        return "Failed to move task {:d}."
+
     def open(self, id):
         if self.tsk.set_open(id):
             return "Task {:d} opened.".format(id)

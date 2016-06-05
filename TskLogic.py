@@ -74,6 +74,31 @@ class TskLogic:
 
         return True
 
+    def set_backlog_position_relative(self, id, offset):
+        # Verify the task exists
+        task_ids = [x.id for x in self.tasks]
+        if not id in task_ids:
+            return False
+
+        # Get position and Task instance
+        pos = task_ids.index(id)
+        task = self.tasks[pos]
+
+        # Verify it is in the backlog
+        if not task.is_open():
+            return False
+
+        # check current position+offset for out of bounds
+        newPos = pos + offset
+
+        if newPos > len(self.tasks):
+            newPos = len(self.tasks)
+        if newPos < 0:
+            newPos = 0
+
+        # move to new position
+        return self.set_backlog_position(id, newPos)
+
     def set_active(self, id):
         task_ids = [x.id for x in self.tasks]
         if not id in task_ids:
@@ -320,6 +345,38 @@ class TaskBacklogTest(unittest.TestCase):
         self.assertEquals(self.tsk.get_task(self.id1), tasks[0])
         self.assertEquals(self.tsk.get_task(self.id3), tasks[1])
         self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
+
+    def test_backlog_set_pos_rel_positive(self):
+        self.assertTrue(self.tsk.set_backlog_position_relative(self.id2, 1))
+        tasks = self.tsk.list_tasks()
+        self.assertEquals(self.tsk.get_task(self.id1), tasks[0])
+        self.assertEquals(self.tsk.get_task(self.id3), tasks[1])
+        self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
+
+    def test_backlog_set_pos_rel_negative(self):
+        self.assertTrue(self.tsk.set_backlog_position_relative(self.id2, -1))
+        tasks = self.tsk.list_tasks()
+        self.assertEquals(self.tsk.get_task(self.id2), tasks[0])
+        self.assertEquals(self.tsk.get_task(self.id1), tasks[1])
+        self.assertEquals(self.tsk.get_task(self.id3), tasks[2])
+
+    def test_backlog_set_pos_rel_oob_negative(self):
+        self.assertTrue(self.tsk.set_backlog_position_relative(self.id2, -100))
+        tasks = self.tsk.list_tasks()
+        self.assertEquals(self.tsk.get_task(self.id2), tasks[0])
+        self.assertEquals(self.tsk.get_task(self.id1), tasks[1])
+        self.assertEquals(self.tsk.get_task(self.id3), tasks[2])
+
+    def test_backlog_set_pos_rel_oob_positive(self):
+        self.assertTrue(self.tsk.set_backlog_position_relative(self.id2, 100))
+        tasks = self.tsk.list_tasks()
+        self.assertEquals(self.tsk.get_task(self.id1), tasks[0])
+        self.assertEquals(self.tsk.get_task(self.id3), tasks[1])
+        self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
+
+    def test_backlog_set_pos_rel_not_in_backlog(self):
+        self.tsk.get_task(self.id1).close()
+        self.assertFalse(self.tsk.set_backlog_position_relative(self.id1, 1))
 
 class TaskIdTest(unittest.TestCase):
     def setUp(self):
