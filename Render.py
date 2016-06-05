@@ -44,7 +44,7 @@ class TskTextRender:
         for i, task in enumerate(self.tsk.list_tasks()):
             if not task.is_open():
                 continue
-            ret += "\n{:<3x}   {:s}".format(task.id, task.summary)
+            ret += "\n{:<3d}   {:s}".format(task.id, task.summary)
             output += 1
             if output >= self.backlog_max:
                 ret += "\n... {:d} More".format(num_in_backlog - output)
