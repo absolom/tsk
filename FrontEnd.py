@@ -60,7 +60,7 @@ class TskFrontEnd:
         if self.tsk.set_backlog_position(id, pos):
             return "Task {:d} moved to position {:d}.".format(id, pos)
 
-        return "Failed to move task {:d}."
+        return "Failed to move task {:d}.".format(id)
 
     def set_position_relative(self, id, offset):
         if self.tsk.set_backlog_position_relative(id, offset):
@@ -69,7 +69,7 @@ class TskFrontEnd:
             else:
                 return "Task {:d} moved {:d} down.".format(id, offset)
 
-        return "Failed to move task {:d}."
+        return "Failed to move task {:d}.".format(id)
 
     def open(self, id):
         if self.tsk.set_open(id):
