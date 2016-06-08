@@ -65,7 +65,7 @@ class TskTextRender:
             if not task.is_blocked():
                 continue
 
-            ret += "\n{:<3d}   {:s}   {:s}".format(task.id, task.summary, task.blocked_reason)
+            ret += "\n{:<3d}   {:s}\n          {:s}".format(task.id, task.summary, task.blocked_reason)
             output += 1
             if output >= self.blocked_max:
                 ret += "\n... {:d} More".format(num_blocked - output)
@@ -174,8 +174,10 @@ Task2 Description"""
         self.tsk.set_blocked(3, "Reason1")
         self.tsk.set_blocked(5, "Reason2")
         blocked_truth = """Blocked
-3     Task3   Reason1
-5     Task5   Reason2"""
+3     Task3
+          Reason1
+5     Task5
+          Reason2"""
         self.assertEquals(blocked_truth, self.tskfe.get_blocked_summary_string())
 
     def test_get_blocked_status_empty(self):
@@ -187,10 +189,14 @@ Task2 Description"""
             self.tsk.set_blocked(i, "Reason{:d}".format(i))
         self.tsk.set_open(2)
         blocked_truth = """Blocked
-1     Task1   Reason1
-3     Task3   Reason3
-4     Task4   Reason4
-5     Task5   Reason5
+1     Task1
+          Reason1
+3     Task3
+          Reason3
+4     Task4
+          Reason4
+5     Task5
+          Reason5
 ... 9 More"""
         self.assertEquals(blocked_truth, self.tskfe.get_blocked_summary_string())
 
@@ -199,8 +205,10 @@ Task2 Description"""
             self.tsk.set_blocked(i, "Reason{:d}".format(i))
         self.tskfe.set_blocked_max(2)
         blocked_truth = """Blocked
-1     Task1   Reason1
-2     Task2   Reason2
+1     Task1
+          Reason1
+2     Task2
+          Reason2
 ... 12 More"""
         self.assertEquals(blocked_truth, self.tskfe.get_blocked_summary_string())
 
