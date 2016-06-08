@@ -30,7 +30,7 @@ class TskTextRender:
             return "No Active Task."
 
         active_task = self.tsk.get_task(self.tsk.get_active())
-        return "{:s}\n{:<3x}   {:s}\n{:s}".format("Active Task", self.tsk.get_active(), active_task.summary, active_task.description)
+        return "{:s}\n{:<3d}   {:s}\n{:s}".format("Active Task", self.tsk.get_active(), active_task.summary, active_task.description)
 
     def get_backlog_summary_string(self):
         ret = "Backlog"
@@ -65,7 +65,7 @@ class TskTextRender:
             if not task.is_blocked():
                 continue
 
-            ret += "\n{:<3x}   {:s}   {:s}".format(task.id, task.summary, task.blocked_reason)
+            ret += "\n{:<3d}   {:s}   {:s}".format(task.id, task.summary, task.blocked_reason)
             output += 1
             if output >= self.blocked_max:
                 ret += "\n... {:d} More".format(num_blocked - output)
