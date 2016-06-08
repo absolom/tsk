@@ -2,6 +2,7 @@ import unittest
 import math
 from TskLogic import TskLogic
 from Pomo import Pomo
+from datetime import datetime
 
 class PomoRender:
     def __init__(self, pomo):
@@ -20,10 +21,12 @@ class PomoRender:
         return "Pomodoro: {:d}:{:02d}".format(minutes, seconds)
 
 class TskTextRender:
-    def __init__(self, tsk):
+    def __init__(self, tsk, datetime=datetime):
         self.tsk = tsk
         self.backlog_max = 4
         self.blocked_max = 10
+        self.closed_max = 20
+        self.datetime = datetime
 
     def get_active_string(self):
         if self.tsk.get_active() == None:
@@ -32,6 +35,7 @@ class TskTextRender:
         active_task = self.tsk.get_task(self.tsk.get_active())
         return "{:s}\n{:<3d}   {:s}\n{:s}".format("Active Task", self.tsk.get_active(), active_task.summary, active_task.description)
 
+    # TODO: All the get_*_summary_string() functions need duplication removed
     def get_backlog_summary_string(self):
         ret = "Backlog"
         output = 0
@@ -44,6 +48,7 @@ class TskTextRender:
         for i, task in enumerate(self.tsk.list_tasks()):
             if not task.is_open():
                 continue
+
             ret += "\n{:<3d}   {:s}".format(task.id, task.summary)
             output += 1
             if output >= self.backlog_max:
@@ -51,6 +56,30 @@ class TskTextRender:
                 break
 
         return ret
+
+    def get_closed_summary_string(self):
+        ret = "Closed"
+        output = 0
+        num_closed = 0
+        for i, task in enumerate(self.tsk.list_tasks()):
+            if not task.is_closed():
+                continue
+            num_closed += 1
+
+        for i, task in enumerate(self.tsk.list_tasks()):
+            if not task.is_closed():
+                continue
+
+            closed_date = datetime.fromtimestamp(task.date_closed)
+            closed_date_string = closed_date.strftime('%m-%d-%y')
+            ret += "\n{:<3d}   {:s} : {:s}".format(task.id, closed_date_string, task.summary)
+            output += 1
+            if output >= self.closed_max:
+                ret += "\n... {:d} More".format(num_closed - output)
+                break
+
+        return ret
+
 
     def get_blocked_summary_string(self):
         ret = "Blocked"
@@ -211,6 +240,14 @@ Task2 Description"""
           Reason2
 ... 12 More"""
         self.assertEquals(blocked_truth, self.tskfe.get_blocked_summary_string())
+
+    def test_get_closed_status(self):
+        self.tsk.set_closed(3)
+        self.tsk.set_closed(5)
+        closed_truth = """Closed
+3     Task3
+5     Task5"""
+        self.assertEquals(closed_truth, self.tskfe.get_closed_summary_string())
 
 class PomoStringsTest(unittest.TestCase):
     def setUp(self):

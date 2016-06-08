@@ -46,6 +46,10 @@ class TskFrontEnd:
         ret += self.renderTsk.get_backlog_summary_string()
         return ret
 
+    def closed(self):
+        ret = "\n" + self.renderTsk.get_closed_summary_string()
+        return ret
+
     def backlog(self):
         ret = self.renderTsk.get_backlog_summary_string()
         return ret

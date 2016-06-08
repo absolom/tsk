@@ -35,7 +35,8 @@ valid_commands = [ "edit_task",
                                      "pause",
                                      "cancel",
                                      "monitor",
-                                     "move" ]
+                                     "move",
+                                     "closed" ]
 
 parser = argparse.ArgumentParser(description='Self task management program.')
 parser.add_argument('command',  choices=valid_commands)
@@ -58,6 +59,8 @@ elif args.command == "add_task":
         print fe.add_task(args.summary, args.description)
 elif args.command == "status":
         print fe.status()
+elif args.command == "closed":
+        print fe.closed()
 elif args.command == "backlog":
         print fe.backlog()
 elif args.command == "block":

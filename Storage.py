@@ -28,7 +28,7 @@ class Storage:
             f.write("## Id: {:d}\n".format(task.id))
             f.write("## Date Created: {:d}\n".format(task.date_created))
             f.write("## Date Closed:")
-            if task.date_closed:
+            if task.date_closed != None:
                 f.write(" {:d}\n".format(task.date_closed))
             else:
                 f.write("\n")
