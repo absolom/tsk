@@ -1,12 +1,15 @@
 import unittest
+import time
 
 class Task:
-    def __init__(self, summary, description):
+    def __init__(self, summary, description, createDate=time.time()):
         self.summary = summary
         self.description = description
         self.blocked_reason = None
         self.id = None
         self.state = "Open"
+        self.date_created = createDate
+        self.date_closed = None
 
     def __eq__(self, other):
         return self.summary == other.summary and self.description == other.description
@@ -23,9 +26,10 @@ class Task:
     def is_open(self):
         return self.state == "Open"
 
-    def close(self):
+    def close(self, t=time.time()):
         self.blocked_reason = None
         self.state = "Closed"
+        self.date_closed = t
 
     def open(self):
         self.blocked_reason = None
@@ -94,7 +98,6 @@ class TaskTest(unittest.TestCase):
     def test_active_to_closed(self):
         self.task.activate()
         self.task.close()
-        self.assertFalse(self.task.is_active())
         self.assertTrue(self.task.is_closed())
 
     def test_active_to_open(self):
@@ -112,6 +115,17 @@ class TaskTest(unittest.TestCase):
     def test_set_blocked_reason(self):
         self.task.block("Reason")
         self.assertEquals("Reason", self.task.blocked_reason)
+
+    def test_create_date(self):
+        self.task = Task("Summary", "Description", 1001)
+        self.assertEquals(1001, self.task.date_created)
+
+    def test_close_date(self):
+        self.task.close(1111)
+        self.assertEquals(1111, self.task.date_closed)
+
+    def test_close_date_none_default(self):
+        self.assertIsNone(self.task.date_closed)
 
 if __name__ == '__main__':
     unittest.main()
