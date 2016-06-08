@@ -16,8 +16,6 @@ class TskLogic:
 
     def add(self, summary, description=""):
         ntask = self.taskFactory.create_task(summary, description)
-        if ntask in self.tasks:
-            return (False, 0)
         nid = len(self.tasks)+1
         ntask.id = nid
         self.tasks.append(ntask)
@@ -165,7 +163,7 @@ class TskTest(unittest.TestCase):
 
     def test_add_duplicate(self):
         self.tsk.add("Task1Summary")
-        self.assertFalse(self.tsk.add("Task1Summary")[0])
+        self.assertTrue(self.tsk.add("Task1Summary")[0])
 
     def test_add_id(self):
         success, id = self.tsk.add("Task1Summary")
