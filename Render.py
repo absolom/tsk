@@ -1,5 +1,6 @@
 import unittest
 import math
+import os
 from TskLogic import TskLogic
 from Pomo import Pomo
 from datetime import datetime
@@ -30,7 +31,7 @@ class TskTextRender:
 
     def _task_to_string(self, task):
         # TODO: Probably push this into Task eventually
-        return "{:<3d}   {:s}\n{:s}".format(task.id, task.summary, task.description)
+        return "{:<3d}   {:s}{:s}{:s}".format(task.id, task.summary, 2*os.linesep, task.description)
 
     def get_active_string(self):
         if self.tsk.get_active() == None:
@@ -135,7 +136,7 @@ class StringsTest(unittest.TestCase):
         self.tskfe.set_blocked_max(4)
 
     def test_get_task_string(self):
-        truth = """2     Task2\nTask2 Description"""
+        truth = """2     Task2\n\nTask2 Description"""
         self.assertEquals(truth, self.tskfe.get_task_string(2))
 
     def test_get_task_string_no_task(self):
@@ -149,13 +150,14 @@ class StringsTest(unittest.TestCase):
     def test_get_active_string_with_active(self):
         self.tsk.set_active(1)
         status_active_truth = """Active Task
-1     Task1\n"""
+1     Task1\n\n"""
         self.assertEquals(status_active_truth, self.tskfe.get_active_string())
 
     def test_get_active_string_with_active_and_description(self):
         self.tsk.set_active(2)
         status_active_truth = """Active Task
 2     Task2
+
 Task2 Description"""
         self.assertEquals(status_active_truth, self.tskfe.get_active_string())
 
