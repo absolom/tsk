@@ -11,6 +11,7 @@ import argparse
 import subprocess
 import time
 import os.path
+import sys
 
 tsk = TskLogic()
 pomo = Pomo()
@@ -39,7 +40,8 @@ valid_commands = [ "edit_task",
                    "monitor",
                    "move",
                    "closed",
-                   "show_task" ]
+                   "show_task",
+                   "init" ]
 
 parser = argparse.ArgumentParser(description='Self task management program.')
 parser.add_argument('command',  choices=valid_commands)
@@ -48,6 +50,16 @@ parser.add_argument('args', nargs=argparse.REMAINDER)
 # TODO: Refactor to use subparsers
 
 args = parser.parse_args()
+
+if args.command == "init":
+    f = open('.tskfile', 'w+')
+    f.close()
+    print 'Tsk initialized.'
+    sys.exit(0)
+
+if not os.path.isfile('.tskfile'):
+    print "No .tskfile database found."
+    sys.exit(1)
 
 if args.command == "edit_task":
     parser = argparse.ArgumentParser(description='Opens text editor to edit task contents.')
