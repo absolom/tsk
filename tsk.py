@@ -6,6 +6,7 @@ from Render import TskTextRender
 from Render import PomoRender
 from TskLogic import TskLogic
 from Storage import Storage
+import shutil
 import argparse
 import subprocess
 import time
@@ -15,6 +16,7 @@ tsk = TskLogic()
 pomo = Pomo()
 
 if os.path.isfile('.tskfile'):
+    shutil.copyfile('.tskfile', '.tskfile_backup')
     storage = Storage(time)
     if storage.load('.tskfile'):
         tsk.tasks = storage.tasks
@@ -112,3 +114,4 @@ storage = Storage(time)
 storage.tasks = tsk.tasks
 storage.pomo = pomo
 storage.save('.tskfile')
+os.remove('.tskfile_backup')
