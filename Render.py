@@ -30,14 +30,21 @@ class TskTextRender:
 
     def _task_to_string(self, task):
         # TODO: Probably push this into Task eventually
-        return "{:s}\n{:<3d}   {:s}\n{:s}".format("Active Task", self.tsk.get_active(), task.summary, task.description)
+        return "{:<3d}   {:s}\n{:s}".format(task.id, task.summary, task.description)
 
     def get_active_string(self):
         if self.tsk.get_active() == None:
             return "No Active Task."
 
         active_task = self.tsk.get_task(self.tsk.get_active())
-        return self._task_to_string(active_task)
+        return "{:s}\n{:s}".format("Active Task", self._task_to_string(active_task))
+
+    def get_task_string(self, id):
+        task = self.tsk.get_task(id)
+        if task is None:
+            return "Task {:d} not found.".format(id)
+
+        return self._task_to_string(task)
 
     # TODO: All the get_*_summary_string() functions need duplication removed
     def get_backlog_summary_string(self):
@@ -126,6 +133,14 @@ class StringsTest(unittest.TestCase):
         self.tskfe = TskTextRender(self.tsk)
         self.tskfe.set_backlog_max(4)
         self.tskfe.set_blocked_max(4)
+
+    def test_get_task_string(self):
+        truth = """2     Task2\nTask2 Description"""
+        self.assertEquals(truth, self.tskfe.get_task_string(2))
+
+    def test_get_task_string_no_task(self):
+        truth = "Task 30 not found."
+        self.assertEquals(truth, self.tskfe.get_task_string(30))
 
     def test_get_active_string_no_active(self):
         status_active_truth = """No Active Task."""
