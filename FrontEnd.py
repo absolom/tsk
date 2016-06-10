@@ -349,7 +349,8 @@ class TskFrontEndTest(unittest.TestCase):
     def test_status(self):
         resp = self.fe.status()
 
-        self.assertEquals("\nPomo\n\nActive\n\nBlocked\n\nBacklog\n", resp)
+        self.assertEquals(os.linesep + "Pomo" + 2*os.linesep + "Active"
+            + 3*os.linesep + "Blocked" + 3*os.linesep + "Backlog" + 2*os.linesep, resp)
         self.assertTrue(self.dbl1.get_active_string_called)
         self.assertTrue(self.dbl1.get_blocked_summary_string_called)
         self.assertTrue(self.dbl1.get_backlog_summary_string_called)

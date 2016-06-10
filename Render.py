@@ -28,12 +28,16 @@ class TskTextRender:
         self.closed_max = 20
         self.datetime = datetime
 
+    def _task_to_string(self, task):
+        # TODO: Probably push this into Task eventually
+        return "{:s}\n{:<3d}   {:s}\n{:s}".format("Active Task", self.tsk.get_active(), task.summary, task.description)
+
     def get_active_string(self):
         if self.tsk.get_active() == None:
             return "No Active Task."
 
         active_task = self.tsk.get_task(self.tsk.get_active())
-        return "{:s}\n{:<3d}   {:s}\n{:s}".format("Active Task", self.tsk.get_active(), active_task.summary, active_task.description)
+        return self._task_to_string(active_task)
 
     # TODO: All the get_*_summary_string() functions need duplication removed
     def get_backlog_summary_string(self):
