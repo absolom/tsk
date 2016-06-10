@@ -1,3 +1,4 @@
+import os
 import unittest
 from TaskFileParser import TaskFileParser
 from Render import TskTextRender, PomoRender
@@ -39,11 +40,16 @@ class TskFrontEnd:
         ret , id = self.tsk.add(summary, description)
         return "Task {:d} added.".format(id)
 
+    def show_task(self, id):
+        None
+        # TODO: output somethine like get_active_string() would output
+        #  probably refactor get_active_string() to get_task_description(id=active_task_id)
+
     def status(self):
-        ret = "\r\n" + self.renderPomo.get_status_string(self.time.time()) + "\r\n"
-        ret += self.renderTsk.get_active_string() + "\r\n" + "\r\n"
-        ret += self.renderTsk.get_blocked_summary_string() + "\r\n" + "\r\n"
-        ret += self.renderTsk.get_backlog_summary_string() + "\r\n"
+        ret = os.linesep + self.renderPomo.get_status_string(self.time.time()) + os.linesep
+        ret += self.renderTsk.get_active_string() + os.linesep + os.linesep
+        ret += self.renderTsk.get_blocked_summary_string() + os.linesep + os.linesep
+        ret += self.renderTsk.get_backlog_summary_string() + os.linesep
         return ret
 
     def closed(self):
