@@ -40,10 +40,10 @@ class TskFrontEnd:
         return "Task {:d} added.".format(id)
 
     def status(self):
-        ret = "\n" + self.renderPomo.get_status_string(self.time.time()) + "\n"
-        ret += self.renderTsk.get_active_string() + "\n"
-        ret += self.renderTsk.get_blocked_summary_string() + "\n"
-        ret += self.renderTsk.get_backlog_summary_string()
+        ret = "\r\n" + self.renderPomo.get_status_string(self.time.time()) + "\r\n"
+        ret += self.renderTsk.get_active_string() + "\r\n" + "\r\n"
+        ret += self.renderTsk.get_blocked_summary_string() + "\r\n" + "\r\n"
+        ret += self.renderTsk.get_backlog_summary_string() + "\r\n"
         return ret
 
     def closed(self):
