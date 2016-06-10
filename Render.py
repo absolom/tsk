@@ -244,9 +244,11 @@ Task2 Description"""
     def test_get_closed_status(self):
         self.tsk.set_closed(3)
         self.tsk.set_closed(5)
+        self.tsk.get_task(3).date_closed = 1
+        self.tsk.get_task(5).date_closed = 3600*24 + 1
         closed_truth = """Closed
-3     Task3
-5     Task5"""
+3     12-31-69 : Task3
+5     01-01-70 : Task5"""
         self.assertEquals(closed_truth, self.tskfe.get_closed_summary_string())
 
 class PomoStringsTest(unittest.TestCase):
