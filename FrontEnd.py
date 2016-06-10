@@ -41,9 +41,7 @@ class TskFrontEnd:
         return "Task {:d} added.".format(id)
 
     def show_task(self, id):
-        None
-        # TODO: output somethine like get_active_string() would output
-        #  probably refactor get_active_string() to get_task_description(id=active_task_id)
+        return self.renderTsk.get_task_string(id)
 
     def status(self):
         ret = os.linesep + self.renderPomo.get_status_string(self.time.time()) + os.linesep

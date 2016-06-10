@@ -36,7 +36,8 @@ valid_commands = [ "edit_task",
                                      "cancel",
                                      "monitor",
                                      "move",
-                                     "closed" ]
+                                     "closed",
+                                     "show_task" ]
 
 parser = argparse.ArgumentParser(description='Self task management program.')
 parser.add_argument('command',  choices=valid_commands)
@@ -51,6 +52,11 @@ if args.command == "edit_task":
         parser.add_argument('task_id', type=int)
         args = parser.parse_args(args.args)
         print fe.edit_task(args.task_id)
+elif args.command == "show_task":
+        parser = argparse.ArgumentParser(description='Shows details of task.')
+        parser.add_argument('task_id', type=int)
+        args = parser.parse_args(args.args)
+        print fe.show_task(args.task_id)
 elif args.command == "add_task":
         parser = argparse.ArgumentParser(description='Adds a new task.')
         parser.add_argument('summary')
