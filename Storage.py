@@ -26,10 +26,10 @@ class Storage:
                 for line in task.blocked_reason.split("\n"):
                     f.write(line + "\n")
             f.write("## Id: {:d}\n".format(task.id))
-            f.write("## Date Created: {:d}\n".format(task.date_created))
+            f.write("## Date Created: {:d}\n".format(int(task.date_created)))
             f.write("## Date Closed:")
             if task.date_closed != None:
-                f.write(" {:d}\n".format(task.date_closed))
+                f.write(" {:d}\n".format(int(task.date_closed)))
             else:
                 f.write("\n")
             f.write("## Summary\n")
