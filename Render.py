@@ -136,7 +136,7 @@ class StringsTest(unittest.TestCase):
         self.tskfe.set_blocked_max(4)
 
     def test_get_task_string(self):
-        truth = """2     Task2\n\nTask2 Description"""
+        truth = """\n2     Task2\n\nTask2 Description"""
         self.assertEquals(truth, self.tskfe.get_task_string(2))
 
     def test_get_task_string_no_task(self):
