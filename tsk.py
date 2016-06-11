@@ -29,7 +29,7 @@ fe = TskFrontEnd(tsk, pomo, TskTextRender(tsk), PomoRender(pomo), time, subproce
 valid_commands = [ "edit_task",
                    "add_task",
                    "status",
-                   "backlog",
+                   "show_backlog",
                    "activate",
                    "block",
                    "open",
@@ -81,7 +81,7 @@ elif args.command == "status":
     print fe.status()
 elif args.command == "closed":
     print fe.closed()
-elif args.command == "backlog":
+elif args.command == "show_backlog":
     print fe.backlog()
 elif args.command == "block":
     parser = argparse.ArgumentParser(description='Changes state of task to blocked state.')
