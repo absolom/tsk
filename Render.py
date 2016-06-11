@@ -45,7 +45,7 @@ class TskTextRender:
         if task is None:
             return "Task {:d} not found.".format(id)
 
-        return self._task_to_string(task)
+        return os.linesep + self._task_to_string(task)
 
     # TODO: All the get_*_summary_string() functions need duplication removed
     def get_backlog_summary_string(self):
