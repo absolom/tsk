@@ -66,6 +66,13 @@ if args.command == "init":
     os.makedirs('.tsk')
     f = open('.tsk/tskfile', 'w+')
     f.close()
+
+    proc = subprocess.Popen("git init .tsk/", shell=True, stdout=subprocess.PIPE)
+    proc.wait()
+    if proc.returncode != 0:
+        print "Failed to create git repo."
+        sys.exit(1)
+
     print 'Tsk initialized.'
     sys.exit(0)
 
@@ -156,3 +163,7 @@ storage = Storage(time)
 storage.tasks = tsk.tasks
 storage.pomo = pomo
 storage.save('.tsk/tskfile')
+proc = subprocess.Popen("cd .tsk && git add tskfile && git commit -m 'Updates tskfile.'", shell=True, stdout=subprocess.PIPE)
+proc.wait()
+# if proc.returncode != 0:
+#     print "Failed to update Tsk's git repo."
