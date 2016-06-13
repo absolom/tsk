@@ -32,6 +32,12 @@ class Storage:
                 f.write(" {:d}\n".format(int(task.date_closed)))
             else:
                 f.write("\n")
+            f.write("## Date Due:")
+            if task.date_due is not None:
+                f.write(" {:d}\n".format(task.date_due))
+            else:
+                f.write("\n")
+
             f.write("## Summary\n")
             for line in task.summary.split("\n"):
                 f.write(line + "\n")
@@ -99,6 +105,12 @@ class Storage:
                 if mo:
                     if mo.group(1):
                         newtask.date_closed = int(mo.group(1))
+                    state = 12
+            elif state == 12:
+                mo = re.match("## Date Due:(.*)", line)
+                if mo:
+                    if mo.group(1):
+                        newtask.date_due = int(mo.group(1))
                     state = 4
             elif state == 4:
                 if re.match("## Summary", line):
@@ -169,6 +181,7 @@ class StorageTest_Load(unittest.TestCase):
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
+## Date Due:
 ## Summary
 Task4
 ## Description
@@ -180,6 +193,7 @@ multiline
 ## Id: 7
 ## Date Created: 1001
 ## Date Closed: 1004
+## Date Due: 1003
 ## Summary
 Task7
 ## Description
@@ -191,6 +205,7 @@ BlockedReason
 ## Id: 8
 ## Date Created: 1002
 ## Date Closed:
+## Date Due:
 ## Summary
 Task8
 ## Description
@@ -213,6 +228,7 @@ Task8Description
         self.assertTrue(storage.tasks[0].is_open)
         self.assertEqual(1000, storage.tasks[0].date_created)
         self.assertIsNone(storage.tasks[0].date_closed)
+        self.assertIsNone(storage.tasks[0].date_due)
 
         self.assertEqual("Task7", storage.tasks[1].summary)
         self.assertEqual(7, storage.tasks[1].id)
@@ -220,6 +236,7 @@ Task8Description
         self.assertTrue(storage.tasks[1].is_closed)
         self.assertEqual(1001, storage.tasks[1].date_created)
         self.assertEqual(1004, storage.tasks[1].date_closed)
+        self.assertEqual(1003, storage.tasks[1].date_due)
 
         self.assertEqual("Task8", storage.tasks[2].summary)
         self.assertEqual(8, storage.tasks[2].id)
@@ -227,7 +244,8 @@ Task8Description
         self.assertTrue(storage.tasks[2].is_blocked)
         self.assertEqual("BlockedReason", storage.tasks[2].blocked_reason)
         self.assertEqual(1002, storage.tasks[2].date_created)
-        self.assertIsNone(storage.tasks[0].date_closed)
+        self.assertIsNone(storage.tasks[2].date_closed)
+        self.assertIsNone(storage.tasks[2].date_due)
 
     def test_load_invalid_datastore_missing_id(self):
         fileDouble = FileDouble()
@@ -237,6 +255,7 @@ Task8Description
 ## Blocked Reason
 ## Date Created: 1000
 ## Date Closed:
+## Date Due:
 ## Summary
 Task4
 ## Description
@@ -257,6 +276,7 @@ Task4Description
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
+## Date Due:
 Task4
 ## Description
 Task4Description
@@ -276,6 +296,7 @@ Task4Description
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
+## Date Due:
 ## Summary
 Task4
 Task4Description
@@ -294,6 +315,7 @@ Task4Description
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
+## Date Due:
 ## Summary
 Task4
 ## Description
@@ -313,6 +335,7 @@ Task4Description
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
+## Date Due:
 ## Summary
 Task4
 ## Description
@@ -332,6 +355,7 @@ Task4Description
 ## Id: 4
 ## Blocked Reason
 ## Date Closed:
+## Date Due:
 ## Summary
 Task4
 ## Description
@@ -351,6 +375,7 @@ Task4Description
 ## Id: 4
 ## Blocked Reason
 ## Date Created: 1000
+## Date Due:
 ## Summary
 Task4
 ## Description
@@ -362,6 +387,25 @@ Task4Description
         storage = Storage(TimeDouble())
         self.assertFalse(storage.load('test_file'))
 
+    def test_load_missing_due_date(self):
+        fileDouble = FileDouble()
+        fileDouble.set_contents("""
+#### Task
+## State: Open
+## Id: 4
+## Blocked Reason
+## Date Created: 1000
+## Date Closed:
+## Summary
+Task4
+## Description
+Task4Description
+""")
+        openDouble.reset()
+        openDouble.add_file(fileDouble)
+
+        storage = Storage(TimeDouble())
+        self.assertFalse(storage.load('test_file'))
 
     def test_load_pomo(self):
         timeDouble = TimeDouble()
@@ -393,6 +437,7 @@ BlockedReason
 ## Id: 8
 ## Date Created: 1000
 ## Date Closed:
+## Date Due:
 ## Summary
 Task8
 ## Description
@@ -453,6 +498,7 @@ class StorageTest_Save(unittest.TestCase):
         task = Task("Task2", "Task2Description", 10002)
         task.id = 2
         task.close(10003)
+        task.set_due_date(10004)
         storage.tasks.append(task)
 
         openDouble.reset()
@@ -469,6 +515,7 @@ BlockedReason
 ## Id: 1
 ## Date Created: 10001
 ## Date Closed:
+## Date Due:
 ## Summary
 Task1
 ## Description
@@ -480,6 +527,7 @@ Multiline
 ## Id: 2
 ## Date Created: 10002
 ## Date Closed: 10003
+## Date Due: 10004
 ## Summary
 Task2
 ## Description
@@ -517,6 +565,7 @@ BlockedReason
 ## Id: 1
 ## Date Created: 1000
 ## Date Closed:
+## Date Due:
 ## Summary
 Task1
 ## Description
@@ -528,6 +577,7 @@ Multiline
 ## Id: 2
 ## Date Created: 1001
 ## Date Closed: 1002
+## Date Due:
 ## Summary
 Task2
 ## Description

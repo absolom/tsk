@@ -10,9 +10,16 @@ class Task:
         self.state = "Open"
         self.date_created = createDate
         self.date_closed = None
+        self.date_due = None
 
     def __eq__(self, other):
         return self.summary == other.summary and self.description == other.description
+
+    def set_due_date(self, epochT):
+        self.date_due = epochT
+
+    def remove_due_date(self, epochT):
+        self.date_due = None
 
     def is_active(self):
         return self.state == "Active"

@@ -1,6 +1,7 @@
 import unittest
 import math
 import os
+import time
 from TskLogic import TskLogic
 from Pomo import Pomo
 from datetime import datetime
@@ -48,7 +49,7 @@ class TskTextRender:
         return os.linesep + self._task_to_string(task)
 
     # TODO: All the get_*_summary_string() functions need duplication removed
-    def get_backlog_summary_string(self):
+    def get_backlog_summary_string(self, t=time.time()):
         ret = "Backlog"
         output = 0
         num_in_backlog = 0
@@ -61,9 +62,20 @@ class TskTextRender:
             if not task.is_open():
                 continue
 
-            ret += "\n{:<3d}   {:s}".format(task.id, task.summary)
+            dueDateString = ' '
+            if not task.date_due is None:
+                if   task.date_due - t < 60*60*24:
+                    dueDateString = '!'
+                elif task.date_due - t < 60*60*24*2:
+                    dueDateString = '>'
+                elif task.date_due - t < 60*60*24*7:
+                    dueDateString = '~'
+                elif task.date_due - t < 60*60*24*7*4:
+                    dueDateString = '-'
+
+            ret += "\n{:<3d} {:s} {:s}".format(task.id, dueDateString, task.summary)
             output += 1
-            if output >= self.backlog_max:
+            if output == self.backlog_max and num_in_backlog - output > 0:
                 ret += "\n... {:d} More".format(num_in_backlog - output)
                 break
 
@@ -171,6 +183,26 @@ Task2 Description"""
 2     Task2"""
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string())
 
+    def test_get_backlog_with_due_dates(self):
+        self.tsk = TskLogic()
+        self.tsk.add("Task1")
+        self.tsk.add("Task2", "Task2 Description")
+        self.tsk.add("Task3")
+        self.tsk.add("Task4")
+
+        self.tsk.get_task(1).date_due = 1
+        self.tsk.get_task(2).date_due = 1 + 60*60*24
+        self.tsk.get_task(3).date_due = 1 + 60*60*24*6
+        self.tsk.get_task(4).date_due = 1 + 60*60*24*6*4
+
+        self.tskfe = TskTextRender(self.tsk)
+        backlog_truth = """Backlog
+1   ! Task1
+2   > Task2
+3   ~ Task3
+4   - Task4"""
+        self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string(0))
+
     def test_get_backlog_summary_overflow(self):
         backlog_truth = """Backlog
 1     Task1
@@ -180,6 +212,22 @@ Task2 Description"""
 5     Task5
 ... 19 More"""
         self.tskfe.set_backlog_max(5)
+        self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string())
+
+    def test_get_backlog_summary_overflow_edge(self):
+        backlog_truth = """Backlog
+1     Task1
+2     Task2
+3     Task3
+4     Task4"""
+        self.tsk = TskLogic()
+        self.tsk.add("Task1")
+        self.tsk.add("Task2")
+        self.tsk.add("Task3")
+        self.tsk.add("Task4")
+
+        self.tskfe = TskTextRender(self.tsk)
+        self.tskfe.set_backlog_max(4)
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string())
 
     def test_get_backlog_summary_with_active(self):

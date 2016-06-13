@@ -18,6 +18,31 @@ class TskFrontEnd:
         self.fileParser = fileParser
         self.renderTsk.set_backlog_max(20)
 
+    def set_due_date(self, id, date):
+        task = self.tsk.get_task(id)
+        return "Direct due date setting is unimplemented."
+
+        if not task:
+            return "Task {:d} could not be found.".format(id)
+
+        return "Task {:d}'s due date has been set.".format(id)
+
+    def set_due_date_relative(self, id, day_offset):
+        task = self.tsk.get_task(id)
+        if not task:
+            return "Task {:d} could not be found.".format(id)
+
+        seconds_offset = day_offset * 24 * 60 * 60
+        task.set_due_date(self.time.time() + seconds_offset)
+
+        return "Task {:d}'s due date has been set.".format(id)
+    def remove_due_date(self, id, date):
+        task = self.tsk.get_task(id)
+        if not task:
+            return "Task {:d} could not be found.".format(id)
+        task.remove_due_date()
+        return "Task {:d}'s due date has been removed.".format(id)
+
     def edit_task(self, id):
         filename = '/tmp/tsk.tmp'
         task = self.tsk.get_task(id)

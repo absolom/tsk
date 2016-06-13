@@ -17,6 +17,10 @@ tsk = TskLogic()
 pomo = Pomo()
 
 if os.path.isfile('.tskfile'):
+    try:
+        shutil.copyfile('.tskfile_backup', '/tmp/.tskfile_backup')
+    except:
+        None
     shutil.copyfile('.tskfile', '.tskfile_backup')
     storage = Storage(time)
     if storage.load('.tskfile'):
@@ -41,7 +45,8 @@ valid_commands = [ "edit_task",
                    "move",
                    "closed",
                    "show_task",
-                   "init" ]
+                   "init",
+                   "set_due_date" ]
 
 parser = argparse.ArgumentParser(description='Self task management program.')
 parser.add_argument('command',  choices=valid_commands)
@@ -52,6 +57,9 @@ parser.add_argument('args', nargs=argparse.REMAINDER)
 args = parser.parse_args()
 
 if args.command == "init":
+    if os.path.isfile('.tskfile'):
+        print "Tsk already initialized"
+        sys.exit(1)
     f = open('.tskfile', 'w+')
     f.close()
     print 'Tsk initialized.'
@@ -113,6 +121,20 @@ elif args.command == "close":
     parser.add_argument('task_id', type=int)
     args = parser.parse_args(args.args)
     print fe.close(args.task_id)
+elif args.command == "set_due_date":
+    parser = argparse.ArgumentParser(description='Changes the due date of a task.')
+    parser.add_argument('task_id', type=int)
+    parser.add_argument('date')
+    args = parser.parse_args(args.args)
+    if args.new_pos[0] == '+' or args.new_pos[0] == '-':
+        print fe.set_due_date_relative(args.task_id, int(args.new_pos))
+    else:
+        print fe.set_due_date(args.task_id, args.date)
+elif args.command == "remove_due_date":
+    parser = argparse.ArgumentParser(description='Removes the due date of a task.')
+    parser.add_argument('task_id', type=int)
+    args = parser.parse_args(args.args)
+    print fe.remove_due_date(args.task_id)
 elif args.command == "start":
     print fe.start()
 elif args.command == "pause":
@@ -126,4 +148,3 @@ storage = Storage(time)
 storage.tasks = tsk.tasks
 storage.pomo = pomo
 storage.save('.tskfile')
-os.remove('.tskfile_backup')
