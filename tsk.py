@@ -16,17 +16,19 @@ import sys
 tsk = TskLogic()
 pomo = Pomo()
 
-if os.path.isfile('.tskfile'):
+if os.path.exists('.tsk'):
     try:
-        shutil.copyfile('.tskfile_backup', '/tmp/.tskfile_backup')
+        shutil.copyfile('.tsk/tskfile_backup', '/tmp/tskfile_backup')
     except:
         None
-    shutil.copyfile('.tskfile', '.tskfile_backup')
+    shutil.copyfile('.tsk/tskfile', '.tsk/tskfile_backup')
     storage = Storage(time)
-    if storage.load('.tskfile'):
+    if storage.load('.tsk/tskfile'):
         tsk.tasks = storage.tasks
         if storage.pomo:
             pomo = storage.pomo
+    else:
+        print 'Failed to load Tsk database file.'
 
 fe = TskFrontEnd(tsk, pomo, TskTextRender(tsk), PomoRender(pomo), time, subprocess, TaskFileParser())
 
@@ -57,16 +59,22 @@ parser.add_argument('args', nargs=argparse.REMAINDER)
 args = parser.parse_args()
 
 if args.command == "init":
-    if os.path.isfile('.tskfile'):
+    if os.path.exists('.tsk'):
         print "Tsk already initialized"
         sys.exit(1)
-    f = open('.tskfile', 'w+')
+
+    os.makedirs('.tsk')
+    f = open('.tsk/tskfile', 'w+')
     f.close()
     print 'Tsk initialized.'
     sys.exit(0)
 
-if not os.path.isfile('.tskfile'):
-    print "No .tskfile database found."
+if not os.path.exists('.tsk'):
+    print "Tsk directory not found."
+    sys.exit(1)
+
+if not os.path.isfile('.tsk/tskfile'):
+    print "No tskfile database found."
     sys.exit(1)
 
 if args.command == "edit_task":
@@ -147,4 +155,4 @@ elif args.command == "monitor":
 storage = Storage(time)
 storage.tasks = tsk.tasks
 storage.pomo = pomo
-storage.save('.tskfile')
+storage.save('.tsk/tskfile')
