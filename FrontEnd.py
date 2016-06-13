@@ -245,6 +245,11 @@ class TskDouble:
         def __init__(self, summary, description):
             self.summary = summary
             self.description = description
+            self.set_due_date_relative_offset = None
+
+        def set_due_date(self, due_date_offset):
+            self.set_due_date_relative_offset = due_date_offset
+            return True
 
     def __init__(self):
         self.set_blocked_called = False
@@ -254,6 +259,7 @@ class TskDouble:
         self.add_summary = None
         self.add_description = None
         self.task = None
+        self.get_task_id = None
 
     def set_blocked(self, id, reason):
         self.set_blocked_called = True
@@ -278,6 +284,7 @@ class TskDouble:
         return id == 10
 
     def get_task(self, id):
+        self.get_task_id = id
         return self.task
 
 class PomoDouble:
@@ -419,6 +426,13 @@ class TskFrontEndTest(unittest.TestCase):
     def test_activate_fail(self):
         ret = self.fe.activate(11)
         self.assertEquals("Failed to activate task 11.", ret)
+
+    def test_set_due_date_relative(self):
+        self.tsk.add("Summary", "Description")
+        self.time.set_time(1000)
+        ret = self.fe.set_due_date_relative(10, 1)
+        self.assertEquals("Task 10's due date has been set.", ret)
+        self.assertEquals(1000+24*60*60, self.tsk.task.set_due_date_relative_offset)
 
 class TskFrontEndTest_EditCommand(unittest.TestCase):
     def setUp(self):
