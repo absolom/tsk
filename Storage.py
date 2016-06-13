@@ -34,7 +34,7 @@ class Storage:
                 f.write("\n")
             f.write("## Date Due:")
             if task.date_due is not None:
-                f.write(" {:d}\n".format(task.date_due))
+                f.write(" {:d}\n".format(int(task.date_due)))
             else:
                 f.write("\n")
 

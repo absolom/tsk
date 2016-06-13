@@ -147,8 +147,8 @@ elif args.command == "set_due_date":
     parser.add_argument('task_id', type=int)
     parser.add_argument('date')
     args = parser.parse_args(args.args)
-    if args.new_pos[0] == '+' or args.new_pos[0] == '-':
-        print fe.set_due_date_relative(args.task_id, int(args.new_pos))
+    if args.date[0] == '+' or args.date[0] == '-':
+        print fe.set_due_date_relative(args.task_id, int(args.date))
     else:
         print fe.set_due_date(args.task_id, args.date)
 elif args.command == "remove_due_date":
