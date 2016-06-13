@@ -54,6 +54,8 @@ parser = argparse.ArgumentParser(description='Self task management program.')
 parser.add_argument('command',  choices=valid_commands)
 parser.add_argument('args', nargs=argparse.REMAINDER)
 
+skip_git = False
+
 # TODO: Refactor to use subparsers
 
 args = parser.parse_args()
@@ -94,6 +96,7 @@ elif args.command == "show_task":
     parser.add_argument('task_id', type=int)
     args = parser.parse_args(args.args)
     print fe.show_task(args.task_id)
+    skip_git = True
 elif args.command == "add_task":
     parser = argparse.ArgumentParser(description='Adds a new task.')
     parser.add_argument('summary')
@@ -102,10 +105,13 @@ elif args.command == "add_task":
     print fe.add_task(args.summary, args.description)
 elif args.command == "status":
     print fe.status()
+    skip_git = True
 elif args.command == "closed":
     print fe.closed()
+    skip_git = True
 elif args.command == "show_backlog":
     print fe.backlog()
+    skip_git = True
 elif args.command == "block":
     parser = argparse.ArgumentParser(description='Changes state of task to blocked state.')
     parser.add_argument('task_id', type=int)
@@ -152,18 +158,23 @@ elif args.command == "remove_due_date":
     print fe.remove_due_date(args.task_id)
 elif args.command == "start":
     print fe.start()
+    skip_git = True
 elif args.command == "pause":
     print fe.pause()
+    skip_git = True
 elif args.command == "cancel":
     print fe.cancel()
+    skip_git = True
 elif args.command == "monitor":
     fe.monitor()
+    skip_git = True
 
 storage = Storage(time)
 storage.tasks = tsk.tasks
 storage.pomo = pomo
 storage.save('.tsk/tskfile')
-proc = subprocess.Popen("cd .tsk && git add tskfile && git commit -m 'Updates tskfile.'", shell=True, stdout=subprocess.PIPE)
-proc.wait()
+if not skip_git:
+    proc = subprocess.Popen("cd .tsk && git add tskfile && git commit -m 'Updates tskfile.'", shell=True, stdout=subprocess.PIPE)
+    proc.wait()
 # if proc.returncode != 0:
 #     print "Failed to update Tsk's git repo."
