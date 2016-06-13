@@ -498,7 +498,7 @@ class StorageTest_Save(unittest.TestCase):
         task = Task("Task2", "Task2Description", 10002)
         task.id = 2
         task.close(10003)
-        task.set_due_date(10004)
+        task.set_due_date(10004.1)
         storage.tasks.append(task)
 
         openDouble.reset()
