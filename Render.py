@@ -64,8 +64,10 @@ class TskTextRender:
 
             dueDateString = ' '
             if not task.date_due is None:
-                if   task.date_due - t < 60*60*24:
+                if task.date_due < t:
                     dueDateString = '!'
+                elif task.date_due - t < 60*60*24:
+                    dueDateString = '^'
                 elif task.date_due - t < 60*60*24*2:
                     dueDateString = '>'
                 elif task.date_due - t < 60*60*24*7:
@@ -189,19 +191,23 @@ Task2 Description"""
         self.tsk.add("Task2", "Task2 Description")
         self.tsk.add("Task3")
         self.tsk.add("Task4")
+        self.tsk.add("Task5")
 
         self.tsk.get_task(1).date_due = 1
-        self.tsk.get_task(2).date_due = 1 + 60*60*24
-        self.tsk.get_task(3).date_due = 1 + 60*60*24*6
-        self.tsk.get_task(4).date_due = 1 + 60*60*24*6*4
+        self.tsk.get_task(2).date_due = 101
+        self.tsk.get_task(3).date_due = 101 + 60*60*24
+        self.tsk.get_task(4).date_due = 101 + 60*60*24*6
+        self.tsk.get_task(5).date_due = 101 + 60*60*24*6*4
 
         self.tskfe = TskTextRender(self.tsk)
+        self.tskfe.set_backlog_max(5)
         backlog_truth = """Backlog
 1   ! Task1
-2   > Task2
-3   ~ Task3
-4   - Task4"""
-        self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string(0))
+2   ^ Task2
+3   > Task3
+4   ~ Task4
+5   - Task5"""
+        self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string(100))
 
     def test_get_backlog_summary_overflow(self):
         backlog_truth = """Backlog
