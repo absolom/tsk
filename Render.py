@@ -74,6 +74,8 @@ class TskTextRender:
                     dueDateString = '~'
                 elif task.date_due - t < 60*60*24*7*4:
                     dueDateString = '-'
+                else:
+                    dueDateString = '.'
 
             ret += "\n{:<3d} {:s} {:s}".format(task.id, dueDateString, task.summary)
             output += 1
