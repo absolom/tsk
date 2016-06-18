@@ -11,9 +11,17 @@ class Task:
         self.date_created = createDate
         self.date_closed = None
         self.date_due = None
+        self.pomo_estimate = None
+        self.pomo_completed = 0
 
     def __eq__(self, other):
         return self.summary == other.summary and self.description == other.description
+
+    def set_estimate(self, pomos):
+        self.pomo_estimate = pomos
+
+    def record_pomo(self):
+        self.pomo_completed += 1
 
     def set_due_date(self, epochT):
         self.date_due = epochT

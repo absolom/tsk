@@ -38,6 +38,13 @@ class Storage:
             else:
                 f.write("\n")
 
+            f.write("## Pomo Estimate:")
+            if task.pomo_estimate is not None:
+                f.write(" {:d}\n".format(int(task.pomo_estimate)))
+            else:
+                f.write("\n")
+            f.write("## Pomo Completed: {:d}\n".format(int(task.pomo_completed)))
+
             f.write("## Summary\n")
             for line in task.summary.split("\n"):
                 f.write(line + "\n")
@@ -111,6 +118,17 @@ class Storage:
                 if mo:
                     if mo.group(1):
                         newtask.date_due = int(mo.group(1))
+                    state = 13
+            elif state == 13:
+                mo = re.match("## Pomo Estimate:(.*)", line)
+                if mo:
+                    if mo.group(1):
+                        newtask.pomo_estimate = int(mo.group(1))
+                    state = 14
+            elif state == 14:
+                mo = re.match("## Pomo Completed: (.*)", line)
+                if mo:
+                    newtask.pomo_completed = int(mo.group(1))
                     state = 4
             elif state == 4:
                 if re.match("## Summary", line):
@@ -182,6 +200,8 @@ class StorageTest_Load(unittest.TestCase):
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task4
 ## Description
@@ -194,6 +214,8 @@ multiline
 ## Date Created: 1001
 ## Date Closed: 1004
 ## Date Due: 1003
+## Pomo Estimate:
+## Pomo Completed: 3
 ## Summary
 Task7
 ## Description
@@ -206,6 +228,8 @@ BlockedReason
 ## Date Created: 1002
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate: 10
+## Pomo Completed: 4
 ## Summary
 Task8
 ## Description
@@ -229,6 +253,8 @@ Task8Description
         self.assertEqual(1000, storage.tasks[0].date_created)
         self.assertIsNone(storage.tasks[0].date_closed)
         self.assertIsNone(storage.tasks[0].date_due)
+        self.assertIsNone(storage.tasks[0].pomo_estimate)
+        self.assertEqual(0, storage.tasks[0].pomo_completed)
 
         self.assertEqual("Task7", storage.tasks[1].summary)
         self.assertEqual(7, storage.tasks[1].id)
@@ -237,6 +263,8 @@ Task8Description
         self.assertEqual(1001, storage.tasks[1].date_created)
         self.assertEqual(1004, storage.tasks[1].date_closed)
         self.assertEqual(1003, storage.tasks[1].date_due)
+        self.assertIsNone(storage.tasks[1].pomo_estimate)
+        self.assertEqual(3, storage.tasks[1].pomo_completed)
 
         self.assertEqual("Task8", storage.tasks[2].summary)
         self.assertEqual(8, storage.tasks[2].id)
@@ -246,6 +274,8 @@ Task8Description
         self.assertEqual(1002, storage.tasks[2].date_created)
         self.assertIsNone(storage.tasks[2].date_closed)
         self.assertIsNone(storage.tasks[2].date_due)
+        self.assertEqual(10, storage.tasks[2].pomo_estimate)
+        self.assertEqual(4, storage.tasks[2].pomo_completed)
 
     def test_load_invalid_datastore_missing_id(self):
         fileDouble = FileDouble()
@@ -256,6 +286,8 @@ Task8Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task4
 ## Description
@@ -277,6 +309,8 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 Task4
 ## Description
 Task4Description
@@ -297,6 +331,8 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task4
 Task4Description
@@ -316,6 +352,8 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task4
 ## Description
@@ -336,6 +374,8 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task4
 ## Description
@@ -356,6 +396,8 @@ Task4Description
 ## Blocked Reason
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task4
 ## Description
@@ -376,6 +418,8 @@ Task4Description
 ## Blocked Reason
 ## Date Created: 1000
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task4
 ## Description
@@ -396,6 +440,52 @@ Task4Description
 ## Blocked Reason
 ## Date Created: 1000
 ## Date Closed:
+## Pomo Estimate:
+## Pomo Completed: 0
+## Summary
+Task4
+## Description
+Task4Description
+""")
+        openDouble.reset()
+        openDouble.add_file(fileDouble)
+
+        storage = Storage(TimeDouble())
+        self.assertFalse(storage.load('test_file'))
+
+    def test_load_missing_pomo_estimate(self):
+        fileDouble = FileDouble()
+        fileDouble.set_contents("""
+#### Task
+## State: Open
+## Id: 4
+## Blocked Reason
+## Date Created: 1000
+## Date Closed:
+## Date Due:
+## Pomo Completed: 0
+## Summary
+Task4
+## Description
+Task4Description
+""")
+        openDouble.reset()
+        openDouble.add_file(fileDouble)
+
+        storage = Storage(TimeDouble())
+        self.assertFalse(storage.load('test_file'))
+
+    def test_load_missing_pomo_completed(self):
+        fileDouble = FileDouble()
+        fileDouble.set_contents("""
+#### Task
+## State: Open
+## Id: 4
+## Blocked Reason
+## Date Created: 1000
+## Date Closed:
+## Date Due:
+## Pomo Estimate:
 ## Summary
 Task4
 ## Description
@@ -438,6 +528,8 @@ BlockedReason
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task8
 ## Description
@@ -516,6 +608,8 @@ BlockedReason
 ## Date Created: 10001
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task1
 ## Description
@@ -528,6 +622,8 @@ Multiline
 ## Date Created: 10002
 ## Date Closed: 10003
 ## Date Due: 10004
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task2
 ## Description
@@ -566,6 +662,8 @@ BlockedReason
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task1
 ## Description
@@ -578,6 +676,8 @@ Multiline
 ## Date Created: 1001
 ## Date Closed: 1002
 ## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
 ## Summary
 Task2
 ## Description

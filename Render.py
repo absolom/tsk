@@ -30,9 +30,20 @@ class TskTextRender:
         self.closed_max = 20
         self.datetime = datetime
 
-    def _task_to_string(self, task):
+    def _task_to_string(self, task, showDescription=True):
         # TODO: Probably push this into Task eventually
-        return "{:<3d}   {:s}{:s}{:s}".format(task.id, task.summary, 2*os.linesep, task.description)
+        estimate_string = ''
+        if task.pomo_estimate is not None:
+            estimate_string = "({:u}/{:u})".format(task.pomo_completed, task.pomo_estimate)
+        elif task.pomo_completed > 0:
+            estimate_string = "({:u})".format(task.pomo_completed)
+
+        ret = ''
+        if showDescription:
+            ret = "{:<3d}   {:s}{:s}{:s}{:s}".format(task.id, task.summary, estimate_string, 2*os.linesep, task.description)
+        else:
+            ret = "{:<3d}   {:s}{:s}".format(task.id, task.summary, estimate_string)
+        return ret
 
     def get_active_string(self):
         if self.tsk.get_active() == None:

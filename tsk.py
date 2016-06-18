@@ -48,7 +48,9 @@ valid_commands = [ "edit_task",
                    "closed",
                    "show_task",
                    "init",
-                   "set_due_date" ]
+                   "set_due_date",
+                   "record_pomo",
+                   "set_estimate" ]
 
 parser = argparse.ArgumentParser(description='Self task management program.')
 parser.add_argument('command',  choices=valid_commands)
@@ -156,6 +158,17 @@ elif args.command == "remove_due_date":
     parser.add_argument('task_id', type=int)
     args = parser.parse_args(args.args)
     print fe.remove_due_date(args.task_id)
+elif args.command == "set_estimate":
+    parser = argparse.ArgumentParser(description='Sets the total estimate of work (in pomos) for this task.')
+    parser.add_argument('task_id', type=int)
+    parser.add_argument('estimate', type=int)
+    args = parser.parse_args(args.args)
+    print fe.set_estimate(args.task_id, args.estimate)
+elif args.command == "record_pomo":
+    parser = argparse.ArgumentParser(description="Record a completed pomo towards a task's completion.")
+    parser.add_argument('task_id', type=int)
+    args = parser.parse_args(args.args)
+    print fe.record_pomo(args.task_id)
 elif args.command == "start":
     print fe.start()
     skip_git = True
