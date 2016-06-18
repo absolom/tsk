@@ -45,6 +45,46 @@ class TskTextRender:
             ret = "{:<3d}   {:s}{:s}".format(task.id, task.summary, estimate_string)
         return ret
 
+    def _get_due_date_string(self, task, t):
+        dueDateString = ' '
+        if not task.date_due is None:
+            if task.date_due < t:
+                dueDateString = '!'
+            elif task.date_due - t < 60*60*24:
+                dueDateString = '^'
+            elif task.date_due - t < 60*60*24*2:
+                dueDateString = '>'
+            elif task.date_due - t < 60*60*24*7:
+                dueDateString = '~'
+            elif task.date_due - t < 60*60*24*7*4:
+                dueDateString = '-'
+            else:
+                dueDateString = '.'
+        return dueDateString
+
+    def _generate_summary_string(self, cb_include, cb_render, render_max):
+        output = 0
+        num_to_include = 0
+        ret = ''
+
+        for i, task in enumerate(self.tsk.list_tasks()):
+            if not cb_include(task):
+                continue
+            num_to_include += 1
+
+        for i, task in enumerate(self.tsk.list_tasks()):
+            if not cb_include(task):
+                continue
+
+            ret += cb_render(task)
+
+            output += 1
+            if output == render_max and num_to_include - output > 0:
+                ret += "\n... {:d} More".format(num_to_include - output)
+                break
+
+        return ret
+
     def get_active_string(self):
         if self.tsk.get_active() == None:
             return "No Active Task."
@@ -59,87 +99,38 @@ class TskTextRender:
 
         return os.linesep + self._task_to_string(task)
 
-    # TODO: All the get_*_summary_string() functions need duplication removed
     def get_backlog_summary_string(self, t=time.time()):
-        ret = "Backlog"
-        output = 0
-        num_in_backlog = 0
-        for i, task in enumerate(self.tsk.list_tasks()):
-            if not task.is_open():
-                continue
-            num_in_backlog += 1
 
-        for i, task in enumerate(self.tsk.list_tasks()):
-            if not task.is_open():
-                continue
+        def include_test(task):
+            return task.is_open()
 
-            dueDateString = ' '
-            if not task.date_due is None:
-                if task.date_due < t:
-                    dueDateString = '!'
-                elif task.date_due - t < 60*60*24:
-                    dueDateString = '^'
-                elif task.date_due - t < 60*60*24*2:
-                    dueDateString = '>'
-                elif task.date_due - t < 60*60*24*7:
-                    dueDateString = '~'
-                elif task.date_due - t < 60*60*24*7*4:
-                    dueDateString = '-'
-                else:
-                    dueDateString = '.'
+        def render(task):
+            dueDateString = self._get_due_date_string(task, t)
+            return "\n{:<3d} {:s} {:s}".format(task.id, dueDateString, task.summary)
 
-            ret += "\n{:<3d} {:s} {:s}".format(task.id, dueDateString, task.summary)
-            output += 1
-            if output == self.backlog_max and num_in_backlog - output > 0:
-                ret += "\n... {:d} More".format(num_in_backlog - output)
-                break
-
-        return ret
+        return "Backlog" + self._generate_summary_string(include_test, render, self.backlog_max)
 
     def get_closed_summary_string(self):
-        ret = "Closed"
-        output = 0
-        num_closed = 0
-        for i, task in enumerate(self.tsk.list_tasks()):
-            if not task.is_closed():
-                continue
-            num_closed += 1
 
-        for i, task in enumerate(self.tsk.list_tasks()):
-            if not task.is_closed():
-                continue
+        def include_test(task):
+            return task.is_closed()
 
+        def render(task):
             closed_date = datetime.fromtimestamp(task.date_closed)
             closed_date_string = closed_date.strftime('%m-%d-%y')
-            ret += "\n{:<3d}   {:s} : {:s}".format(task.id, closed_date_string, task.summary)
-            output += 1
-            if output >= self.closed_max:
-                ret += "\n... {:d} More".format(num_closed - output)
-                break
+            return "\n{:<3d}   {:s} : {:s}".format(task.id, closed_date_string, task.summary)
 
-        return ret
-
+        return "Closed" + self._generate_summary_string(include_test, render, self.closed_max)
 
     def get_blocked_summary_string(self):
-        ret = "Blocked"
-        output = 0
-        num_blocked = 0
-        for i, task in enumerate(self.tsk.list_tasks()):
-            if not task.is_blocked():
-                continue
-            num_blocked += 1
 
-        for i, task in enumerate(self.tsk.list_tasks()):
-            if not task.is_blocked():
-                continue
+        def include_test(task):
+            return task.is_blocked()
 
-            ret += "\n{:<3d}   {:s}\n          {:s}".format(task.id, task.summary, task.blocked_reason)
-            output += 1
-            if output >= self.blocked_max:
-                ret += "\n... {:d} More".format(num_blocked - output)
-                break
+        def render(task):
+            return  "\n{:<3d}   {:s}\n          {:s}".format(task.id, task.summary, task.blocked_reason)
 
-        return ret
+        return "Blocked" + self._generate_summary_string(include_test, render, self.blocked_max)
 
     def set_backlog_max(self, max):
         self.backlog_max = max
