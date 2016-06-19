@@ -30,13 +30,17 @@ class TskTextRender:
         self.closed_max = 20
         self.datetime = datetime
 
-    def _task_to_string(self, task, showDescription=True):
-        # TODO: Probably push this into Task eventually
+    def _get_estimate_string(self, task):
         estimate_string = ''
         if task.pomo_estimate is not None:
-            estimate_string = "({:u}/{:u})".format(task.pomo_completed, task.pomo_estimate)
+            estimate_string = " ({:d}/{:d})".format(task.pomo_completed, task.pomo_estimate)
         elif task.pomo_completed > 0:
-            estimate_string = "({:u})".format(task.pomo_completed)
+            estimate_string = " ({:d})".format(task.pomo_completed)
+        return estimate_string
+
+    def _task_to_string(self, task, showDescription=True):
+        # TODO: Probably push this into Task eventually
+        estimate_string = self._get_estimate_string(task)
 
         ret = ''
         if showDescription:
@@ -106,7 +110,7 @@ class TskTextRender:
 
         def render(task):
             dueDateString = self._get_due_date_string(task, t)
-            return "\n{:<3d} {:s} {:s}".format(task.id, dueDateString, task.summary)
+            return "\n{:<3d} {:s} {:s}{:s}".format(task.id, dueDateString, task.summary, self._get_estimate_string(task))
 
         return "Backlog" + self._generate_summary_string(include_test, render, self.backlog_max)
 
@@ -211,6 +215,33 @@ Task2 Description"""
 3   > Task3
 4   ~ Task4
 5   - Task5"""
+        self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string(100))
+
+    def test_get_backlog_with_estimates(self):
+        self.tsk = TskLogic()
+        self.tsk.add("Task1")
+        self.tsk.add("Task2", "Task2 Description")
+        self.tsk.add("Task3")
+        self.tsk.add("Task4")
+        self.tsk.add("Task5")
+
+        self.tsk.get_task(1).set_estimate(1)
+
+        self.tsk.get_task(2).set_estimate(10)
+        for i in range(0,4):
+            self.tsk.get_task(2).record_pomo()
+
+        self.tsk.get_task(3).record_pomo()
+        self.tsk.get_task(3).record_pomo()
+
+        self.tskfe = TskTextRender(self.tsk)
+        self.tskfe.set_backlog_max(5)
+        backlog_truth = """Backlog
+1     Task1 (0/1)
+2     Task2 (4/10)
+3     Task3 (2)
+4     Task4
+5     Task5"""
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string(100))
 
     def test_get_backlog_summary_overflow(self):
