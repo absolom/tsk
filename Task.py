@@ -20,7 +20,7 @@ class Task:
     def set_estimate(self, pomos):
         self.pomo_estimate = pomos
 
-    def record_pomo(self):
+    def record_work(self):
         self.pomo_completed += 1
 
     def set_due_date(self, epochT):
