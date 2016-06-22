@@ -36,6 +36,7 @@ valid_commands = [ "edit_task",
                    "add_task",
                    "status",
                    "show_backlog",
+                   "sort_backlog",
                    "activate",
                    "block",
                    "open",
@@ -169,6 +170,9 @@ elif args.command == "log_work":
     parser.add_argument('task_id', type=int)
     args = parser.parse_args(args.args)
     print fe.log_work(args.task_id)
+elif args.command == "sort_backlog":
+    parser = argparse.ArgumentParser(description="Sort backlog by due date.")
+    print fe.sort_backlog()
 elif args.command == "start":
     print fe.start()
     skip_git = True

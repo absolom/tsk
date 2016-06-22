@@ -171,6 +171,10 @@ class TskFrontEnd:
         task.log_work()
         return "Pomo recorded for Task {:d}.".format(id)
 
+    def sort_backlog(self):
+        self.tsk.sort_backlog()
+        return "Backlog sorted by due date."
+
 #### Test Doubles
 
 class TaskFileParserDouble:

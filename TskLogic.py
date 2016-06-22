@@ -72,6 +72,9 @@ class TskLogic:
 
         return True
 
+    def sort_backlog(self):
+        self.tasks.sort(key = lambda x: -x.date_due if x.date_due is not None else None, reverse=True)
+
     def set_backlog_position_relative(self, id, offset):
         # Verify the task exists
         task_ids = [x.id for x in self.tasks]
@@ -317,6 +320,15 @@ class TaskBacklogTest(unittest.TestCase):
         _ , self.id1 = self.tsk.add("Task1")
         _ , self.id2 = self.tsk.add("Task2")
         _ , self.id3 = self.tsk.add("Task3")
+
+    def test_sort_backlog(self):
+        self.tsk.get_task(self.id1).set_due_date(1000)
+        self.tsk.get_task(self.id3).set_due_date(999)
+        self.tsk.sort_backlog()
+        tasks = self.tsk.list_tasks()
+        self.assertEquals(self.tsk.get_task(self.id3), tasks[0])
+        self.assertEquals(self.tsk.get_task(self.id1), tasks[1])
+        self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
 
     def test_backlog_default_order(self):
         tasks = self.tsk.list_tasks()
