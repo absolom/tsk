@@ -136,11 +136,14 @@ class TskTextRender:
 
         return "Blocked" + self._generate_summary_string(include_test, render, self.blocked_max)
 
-    def set_backlog_max(self, max):
-        self.backlog_max = max
+    def set_backlog_max(self, mx):
+        self.backlog_max = mx
 
-    def set_blocked_max(self, max):
-        self.blocked_max = max
+    def set_blocked_max(self, mx):
+        self.blocked_max = mx
+
+    def set_closed_max(self, mx):
+        self.closed_max = mx
 
 class StringsTest(unittest.TestCase):
     def setUp(self):

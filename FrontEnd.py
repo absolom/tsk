@@ -21,6 +21,10 @@ class TskFrontEnd:
         self.backlog_max = 45
         self.renderTsk.set_backlog_max(self.backlog_max_status)
 
+        self.closed_max_status = 20
+        self.closed_max = 45
+        self.renderTsk.set_closed_max(self.closed_max_status)
+
     def set_due_date(self, id, date):
         task = self.tsk.get_task(id)
         return "Direct due date setting is unimplemented."
@@ -79,7 +83,9 @@ class TskFrontEnd:
         return ret
 
     def closed(self):
+        self.renderTsk.set_closed_max(self.closed_max)
         ret = "\n" + self.renderTsk.get_closed_summary_string()
+        self.renderTsk.set_closed_max(self.closed_max_status)
         return ret
 
     def backlog(self):
@@ -230,11 +236,15 @@ class TskTextRenderDouble:
         self.get_active_string_called = False
         self.get_backlog_summary_string_called = False
         self.get_blocked_summary_string_called = False
+        self.get_closed_summary_string_called = False
         self.get_active_string_response = ""
         self.get_backlog_summary_string_response = ""
         self.get_blocked_summary_string_response = ""
-        self.set_backlog_max_max = None
-        self.set_backlog_max_called = False
+        self.get_closed_summary_string_response = ""
+        self.set_backlog_max_max = []
+        self.set_backlog_max_called = []
+        self.set_closed_max_max = []
+        self.set_closed_max_called = []
 
     def set_get_active_string_response(self, resp):
         self.get_active_string_response = resp
@@ -257,9 +267,20 @@ class TskTextRenderDouble:
         self.get_blocked_summary_string_called = True
         return self.get_blocked_summary_string_response
 
+    def set_get_closed_summary_string_response(self, resp):
+        self.get_closed_summary_string_response = resp
+
+    def get_closed_summary_string(self):
+        self.get_closed_summary_string_called = True
+        return self.get_closed_summary_string_response
+
     def set_backlog_max(self, max):
-        self.set_backlog_max_called = True
-        self.set_backlog_max_max = max
+        self.set_backlog_max_called.append(True)
+        self.set_backlog_max_max.append(max)
+
+    def set_closed_max(self, max):
+        self.set_closed_max_called.append(True)
+        self.set_closed_max_max.append(max)
 
 class TskDouble:
     class TaskDouble:
@@ -382,6 +403,7 @@ class TskFrontEndTest(unittest.TestCase):
         self.dbl1.set_get_active_string_response("Active\n")
         self.dbl1.set_get_blocked_summary_string_response("Blocked\n")
         self.dbl1.set_get_backlog_summary_string_response("Backlog\n")
+        self.dbl1.set_get_closed_summary_string_response("Closed\n")
         self.dbl2 = PomoRenderDouble()
         self.dbl2.set_get_status_string_response("Pomo\n")
         self.tsk = TskDouble()
@@ -391,7 +413,7 @@ class TskFrontEndTest(unittest.TestCase):
         self.fe = TskFrontEnd(self.tsk, self.pomo, self.dbl1, self.dbl2, self.time, None, None)
 
     def test_sets_backlog_max(self):
-        self.assertTrue(self.dbl1.set_backlog_max_called)
+        self.assertTrue(self.dbl1.set_backlog_max_called[0])
 
     def test_add_task(self):
         msg = self.fe.add_task("Task1Summary", "Task1Description")
@@ -408,9 +430,24 @@ class TskFrontEndTest(unittest.TestCase):
         self.assertTrue(self.dbl2.get_status_string_called)
 
     def test_backlog(self):
+        self.dbl1.set_backlog_max_called = []
+        self.dbl1.set_backlog_max_max = []
         resp = self.fe.backlog()
 
         self.assertEquals("Backlog\n", resp)
+        self.assertEquals(2, len(self.dbl1.set_backlog_max_called))
+        self.assertEquals(self.fe.backlog_max, self.dbl1.set_backlog_max_max[0])
+        self.assertEquals(self.fe.backlog_max_status, self.dbl1.set_backlog_max_max[1])
+
+    def test_closed(self):
+        self.dbl1.set_closed_max_called = []
+        self.dbl1.set_closed_max_max = []
+        resp = self.fe.closed()
+
+        self.assertEquals("\nClosed\n", resp)
+        self.assertEquals(2, len(self.dbl1.set_closed_max_called))
+        self.assertEquals(self.fe.closed_max, self.dbl1.set_closed_max_max[0])
+        self.assertEquals(self.fe.closed_max_status, self.dbl1.set_closed_max_max[1])
 
     def test_block(self):
         ret = self.fe.block(10, "MyReason")
