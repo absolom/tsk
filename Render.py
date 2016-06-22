@@ -232,10 +232,10 @@ Task2 Description"""
 
         self.tsk.get_task(2).set_estimate(10)
         for i in range(0,4):
-            self.tsk.get_task(2).record_work()
+            self.tsk.get_task(2).log_work()
 
-        self.tsk.get_task(3).record_work()
-        self.tsk.get_task(3).record_work()
+        self.tsk.get_task(3).log_work()
+        self.tsk.get_task(3).log_work()
 
         self.tskfe = TskTextRender(self.tsk)
         self.tskfe.set_backlog_max(5)

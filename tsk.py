@@ -49,7 +49,7 @@ valid_commands = [ "edit_task",
                    "show_task",
                    "init",
                    "set_due_date",
-                   "record_work",
+                   "log_work",
                    "set_estimate" ]
 
 parser = argparse.ArgumentParser(description='Self task management program.')
@@ -164,11 +164,11 @@ elif args.command == "set_estimate":
     parser.add_argument('estimate', type=int)
     args = parser.parse_args(args.args)
     print fe.set_estimate(args.task_id, args.estimate)
-elif args.command == "record_work":
+elif args.command == "log_work":
     parser = argparse.ArgumentParser(description="Record a completed pomo towards a task's completion.")
     parser.add_argument('task_id', type=int)
     args = parser.parse_args(args.args)
-    print fe.record_work(args.task_id)
+    print fe.log_work(args.task_id)
 elif args.command == "start":
     print fe.start()
     skip_git = True

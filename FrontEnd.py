@@ -163,12 +163,12 @@ class TskFrontEnd:
         task.set_estimate(estimate)
         return "Estimate set for Task {:d}.".format(id)
 
-    def record_work(self, id):
+    def log_work(self, id):
         task = self.tsk.get_task(id)
         if task is None:
             return "Task {:d} could not be found.".format(id)
 
-        task.record_work()
+        task.log_work()
         return "Pomo recorded for Task {:d}.".format(id)
 
 #### Test Doubles
