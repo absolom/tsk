@@ -75,6 +75,9 @@ class TskLogic:
     def sort_backlog(self):
         self.tasks.sort(key = lambda x: -x.date_due if x.date_due is not None else None, reverse=True)
 
+    def sort_closed(self):
+        self.tasks.sort(key = lambda x: -x.date_closed if x.date_closed is not None else None)
+
     def set_backlog_position_relative(self, id, offset):
         # Verify the task exists
         task_ids = [x.id for x in self.tasks]
@@ -314,7 +317,7 @@ class TaskStateTest(unittest.TestCase):
         task = self.tsk.get_task(id)
         self.assertEquals("", task.blocked_reason)
 
-class TaskBacklogTest(unittest.TestCase):
+class SortingTest(unittest.TestCase):
     def setUp(self):
         self.tsk = TskLogic()
         _ , self.id1 = self.tsk.add("Task1")
@@ -329,6 +332,22 @@ class TaskBacklogTest(unittest.TestCase):
         self.assertEquals(self.tsk.get_task(self.id3), tasks[0])
         self.assertEquals(self.tsk.get_task(self.id1), tasks[1])
         self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
+
+    def test_sort_closed(self):
+        self.tsk.get_task(self.id1).close(3)
+        self.tsk.get_task(self.id2).close(1)
+        self.tsk.sort_closed()
+        tasks = self.tsk.list_tasks()
+        self.assertEquals(self.tsk.get_task(self.id3), tasks[0])
+        self.assertEquals(self.tsk.get_task(self.id1), tasks[1])
+        self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
+
+class TaskBacklogTest(unittest.TestCase):
+    def setUp(self):
+        self.tsk = TskLogic()
+        _ , self.id1 = self.tsk.add("Task1")
+        _ , self.id2 = self.tsk.add("Task2")
+        _ , self.id3 = self.tsk.add("Task3")
 
     def test_backlog_default_order(self):
         tasks = self.tsk.list_tasks()
