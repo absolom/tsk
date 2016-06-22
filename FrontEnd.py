@@ -16,7 +16,10 @@ class TskFrontEnd:
         self.time = time
         self.subprocess = subprocess
         self.fileParser = fileParser
-        self.renderTsk.set_backlog_max(20)
+
+        self.backlog_max_status = 20
+        self.backlog_max = 45
+        self.renderTsk.set_backlog_max(self.backlog_max_status)
 
     def set_due_date(self, id, date):
         task = self.tsk.get_task(id)
@@ -80,7 +83,9 @@ class TskFrontEnd:
         return ret
 
     def backlog(self):
+        self.renderTsk.set_backlog_max(self.backlog_max)
         ret = self.renderTsk.get_backlog_summary_string()
+        self.renderTsk.set_backlog_max(self.backlog_max_status)
         return ret
 
     def block(self, id, reason):
