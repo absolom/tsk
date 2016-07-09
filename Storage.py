@@ -71,7 +71,7 @@ class Storage:
 
     def load(self, filename):
         f = open(filename, 'r')
-        state = 0
+        state = "Start"
         newtask = None
         newpomo = None
 
@@ -79,111 +79,110 @@ class Storage:
             line = f.readline()
             if line == "":
                 break
-            if state == 0:
+            if state == "Start":
                 if re.match("#### Task", line):
                     newtask = Task("", "")
-                    state = 1
+                    state = "Task_State"
                 if re.match("#### Pomodoro", line):
                     newpomo = Pomo()
-                    state = 7
-            elif state == 1:
+                    state = "Pomo_Remaining"
+            elif state == "Task_State":
                 mo = re.match("## State: (.*)", line)
                 if mo:
                     newtask.state = mo.group(1)
-                    state = 2
-            elif state == 2:
+                    state = "Task_BlockedReason"
+            elif state == "Task_BlockedReason":
                 if re.match("## Blocked Reason", line):
                     blocked_reason = None
-                    state = 15
-            elif state == 15:
+                    state = "Task_ClosedReason"
+            elif state == "Task_ClosedReason":
                 mo = re.match("## Closed Reason", line)
                 if mo:
                     if blocked_reason:
                         newtask.blocked_reason = blocked_reason.strip()
                     closed_reason = None
-                    state = 3
+                    state = "Task_Id"
                 else:
                     if blocked_reason is None:
                         blocked_reason = ""
                     blocked_reason += line
-            elif state == 3:
+            elif state == "Task_Id":
                 mo = re.match("## Id: (.*)", line)
                 if mo:
                     if closed_reason:
                         newtask.closed_reason = closed_reason.strip()
                     newtask.id = int(mo.group(1))
-                    state = 10
+                    state = "Task_DateCreated"
                 else:
                     if closed_reason is None:
                         closed_reason = ""
                     closed_reason += line
-            elif state ==  10:
+            elif state ==  "Task_DateCreated":
                 mo = re.match("## Date Created: (.*)", line)
                 if mo:
                     newtask.date_created = int(mo.group(1))
-                    state = 11
-            elif state == 11:
+                    state = "Task_DateClosed"
+            elif state == "Task_DateClosed":
                 mo = re.match("## Date Closed:(.*)", line)
                 if mo:
                     if mo.group(1):
                         newtask.date_closed = int(mo.group(1))
-                    state = 12
-            elif state == 12:
+                    state = "Task_DateDue"
+            elif state == "Task_DateDue":
                 mo = re.match("## Date Due:(.*)", line)
                 if mo:
                     if mo.group(1):
                         newtask.date_due = int(mo.group(1))
-                    state = 13
-            elif state == 13:
+                    state = "Task_PomoEstimate"
+            elif state == "Task_PomoEstimate":
                 mo = re.match("## Pomo Estimate:(.*)", line)
                 if mo:
                     if mo.group(1):
                         newtask.pomo_estimate = int(mo.group(1))
-                    state = 14
-            elif state == 14:
+                    state = "Task_PomoCompleted"
+            elif state == "Task_PomoCompleted":
                 mo = re.match("## Pomo Completed: (.*)", line)
                 if mo:
                     newtask.pomo_completed = int(mo.group(1))
-                    state = 4
-            elif state == 4:
+                    state = "Task_Summary"
+            elif state == "Task_Summary":
                 if re.match("## Summary", line):
                     summary = ""
-                    state = 5
-            elif state == 5:
+                    state = "Task_Description"
+            elif state == "Task_Description":
                 if re.match("## Description", line):
                     newtask.summary = summary.strip()
                     description = ""
-                    state = 6
+                    state = "End"
                 else:
                     summary += line
-            elif state == 6:
+            elif state == "End":
                 if re.match("#### Task", line) or re.match("#### Pomodoro", line):
                     newtask.description = description.strip()
-                    state = 0
                     self.tasks.append(newtask)
                     if re.match("#### Task", line):
-                        state = 1
+                        state = "Task_State"
                         newtask = Task("", "")
                     else:
-                        state = 7
+                        state = "Pomo_Remaining"
                         newpomo = Pomo()
                 else:
                     description += line
-            elif state == 7:
+            elif state == "Pomo_Remaining":
                 mo = re.match("## Time Remaining: (.*)", line)
                 if mo:
                     remainingTime = float(mo.group(1))
                     newpomo.set_remaining_time(remainingTime)
                     self.pomo = newpomo
-                    state = 8
-            elif state == 8:
+                    state = "Pomo_Running"
+            elif state == "Pomo_Running":
                 mo = re.match("## Running: (.*)", line)
                 if mo:
                     if mo.group(1) == "true":
-                        state = 9
+                        state = "Pomo_SaveDate"
                     else:
-                        state = 0
-            elif state == 9:
+                        state = "Start"
+            elif state == "Pomo_SaveDate":
                 mo = re.match("## Save Date: (.*)", line)
                 if mo:
                     saveDateUtc = float(mo.group(1))
@@ -191,15 +190,15 @@ class Storage:
                     remainingTime = newpomo.get_remaining_time(self.time.time()) - elapsedSinceSave
                     newpomo.set_remaining_time( remainingTime if remainingTime > 0 else 0)
                     newpomo.start(self.time.time())
-                    state = 0
+                    state = "Start"
 
-        if state == 6:
+        if state == "End":
             newtask.description = description.strip()
             self.tasks.append(newtask)
-            state = 0
+            state = "Start"
 
         f.close()
-        return state == 0
+        return state == "Start"
 
 class StorageTest_Load(unittest.TestCase):
     def setUp(self):
