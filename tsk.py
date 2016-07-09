@@ -143,8 +143,9 @@ elif args.command == "activate":
 elif args.command == "close":
     parser = argparse.ArgumentParser(description='Changes state of task to closed state.')
     parser.add_argument('task_id', type=int)
+    parser.add_argument('--r', default=None)
     args = parser.parse_args(args.args)
-    print fe.close(args.task_id)
+    print fe.close(args.task_id, args.r)
 elif args.command == "set_due_date":
     parser = argparse.ArgumentParser(description='Changes the due date of a task.')
     parser.add_argument('task_id', type=int)

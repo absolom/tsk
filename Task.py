@@ -6,6 +6,7 @@ class Task:
         self.summary = summary
         self.description = description
         self.blocked_reason = None
+        self.closed_reason = None
         self.id = None
         self.state = "Open"
         self.date_created = createDate
@@ -41,23 +42,27 @@ class Task:
     def is_open(self):
         return self.state == "Open"
 
-    def close(self, t=time.time()):
+    def close(self, t=time.time(), reason=None):
         self.blocked_reason = None
+        self.closed_reason = reason
         self.state = "Closed"
         self.date_closed = t
 
     def open(self):
         self.blocked_reason = None
+        self.closed_reason = None
         self.state = "Open"
         return True
 
     def block(self, reason):
         self.state = "Blocked"
         self.blocked_reason = reason
+        self.closed_reason = None
         return True
 
     def activate(self):
         self.blocked_reason = None
+        self.closed_reason = None
         self.state = "Active"
         return True
 

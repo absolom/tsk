@@ -21,13 +21,11 @@ class TskLogic:
         self.tasks.append(ntask)
         return (True, nid)
 
-    def set_closed(self, id):
+    def set_closed(self, id, reason):
         task = self.get_task(id)
         if task is None:
             return False
-        if task.is_closed():
-            return False
-        task.close()
+        task.close(reason=reason)
         return True
 
     def set_open(self, id):
@@ -243,7 +241,7 @@ class TaskStateTest(unittest.TestCase):
 
     def test_open_closed_task(self):
         _ , id = self.tsk.add("Task1")
-        self.tsk.set_closed(id)
+        self.tsk.set_closed(id, "Reason")
         self.tsk.set_open(id)
         task = self.tsk.get_task(id)
         self.assertTrue(task.is_open())
@@ -263,22 +261,28 @@ class TaskStateTest(unittest.TestCase):
 
     def test_close_open_task(self):
         _ , id = self.tsk.add("Task1")
-        self.assertTrue(self.tsk.set_closed(id))
+        self.assertTrue(self.tsk.set_closed(id, "Reason"))
         task = self.tsk.get_task(id)
         self.assertTrue(task.is_closed())
 
     def test_close_invalid_id(self):
-        self.assertFalse(self.tsk.set_closed(1))
+        self.assertFalse(self.tsk.set_closed(1, "Reason"))
+
+    def test_closed_reason(self):
+        _ , id = self.tsk.add("Task1")
+        self.assertTrue(self.tsk.set_closed(id, "Reason"))
+        task = self.tsk.get_task(id)
+        self.assertEquals("Reason", task.closed_reason)
 
     def test_close_closed_task(self):
         _ , id = self.tsk.add("Task1")
-        self.assertTrue(self.tsk.set_closed(id))
-        self.assertFalse(self.tsk.set_closed(id))
+        self.assertTrue(self.tsk.set_closed(id, "Reason"))
+        self.assertTrue(self.tsk.set_closed(id, "Reason"))
 
     def test_close_active_task(self):
         _ , id = self.tsk.add("Task1")
         self.tsk.set_active(id)
-        self.assertTrue(self.tsk.set_closed(id))
+        self.assertTrue(self.tsk.set_closed(id, "Reason"))
 
     def test_set_active_flags_task_as_active(self):
         _ , id = self.tsk.add("Task1")

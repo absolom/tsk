@@ -124,7 +124,12 @@ class TskTextRender:
         def render(task):
             closed_date = datetime.fromtimestamp(task.date_closed)
             closed_date_string = closed_date.strftime('%m-%d-%y')
-            return "\n{:<3d}   {:s} : {:s}".format(task.id, closed_date_string, task.summary)
+
+            closed_reason_string = ""
+            if task.closed_reason is not None:
+                closed_reason_string = " [{:s}]".format(task.closed_reason.upper())
+
+            return "\n{:<3d}   {:s} : {:s}{:s}".format(task.id, closed_date_string, task.summary, closed_reason_string)
 
         return "Closed" + self._generate_summary_string(include_test, render, self.closed_max)
 
@@ -291,9 +296,9 @@ Task2 Description"""
         self.assertEquals("Backlog", self.tskfe.get_backlog_summary_string())
 
     def test_get_backlog_summary_skips_closed(self):
-        self.tsk.set_closed(3)
-        self.tsk.set_closed(5)
-        self.tsk.set_closed(21)
+        self.tsk.set_closed(3, None)
+        self.tsk.set_closed(5, None)
+        self.tsk.set_closed(21, None)
         backlog_truth = """Backlog
 1     Task1
 2     Task2
@@ -357,12 +362,12 @@ Task2 Description"""
         self.assertEquals(blocked_truth, self.tskfe.get_blocked_summary_string())
 
     def test_get_closed_status(self):
-        self.tsk.set_closed(3)
-        self.tsk.set_closed(5)
+        self.tsk.set_closed(3, None)
+        self.tsk.set_closed(5, "Reason")
         self.tsk.get_task(3).date_closed = 1
         self.tsk.get_task(5).date_closed = 3600*24 + 1
         closed_truth = """Closed
-5     01-01-70 : Task5
+5     01-01-70 : Task5 [REASON]
 3     12-31-69 : Task3"""
         self.assertEquals(closed_truth, self.tskfe.get_closed_summary_string())
 

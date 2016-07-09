@@ -121,8 +121,8 @@ class TskFrontEnd:
 
         return "Failed to open task {:d}.".format(id)
 
-    def close(self, id):
-        if self.tsk.set_closed(id):
+    def close(self, id, reason):
+        if self.tsk.set_closed(id, reason):
             return "Task {:d} closed.".format(id)
 
         return "Failed to close task {:d}.".format(id)
@@ -326,8 +326,8 @@ class TskDouble:
     def set_open(self, id):
         return id == 10
 
-    def set_closed(self, id):
-        return id == 10
+    def set_closed(self, id, reason):
+        return id == 10 and reason == "Reason"
 
     def get_task(self, id):
         self.get_task_id = id
@@ -474,11 +474,11 @@ class TskFrontEndTest(unittest.TestCase):
         self.assertEquals("Failed to open task 11.", ret)
 
     def test_close(self):
-        ret = self.fe.close(10)
+        ret = self.fe.close(10, "Reason")
         self.assertEquals("Task 10 closed.", ret)
 
     def test_close_fail(self):
-        ret = self.fe.close(11)
+        ret = self.fe.close(11, "Reason")
         self.assertEquals("Failed to close task 11.", ret)
 
     def test_activate(self):

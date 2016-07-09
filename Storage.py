@@ -25,6 +25,10 @@ class Storage:
             if task.blocked_reason:
                 for line in task.blocked_reason.split("\n"):
                     f.write(line + "\n")
+            f.write("## Closed Reason\n")
+            if task.closed_reason:
+                for line in task.closed_reason.split("\n"):
+                    f.write(line + "\n")
             f.write("## Id: {:d}\n".format(task.id))
             f.write("## Date Created: {:d}\n".format(int(task.date_created)))
             f.write("## Date Closed:")
@@ -90,18 +94,29 @@ class Storage:
             elif state == 2:
                 if re.match("## Blocked Reason", line):
                     blocked_reason = None
-                    state = 3
-            elif state == 3:
-                mo = re.match("## Id: (.*)", line)
+                    state = 15
+            elif state == 15:
+                mo = re.match("## Closed Reason", line)
                 if mo:
                     if blocked_reason:
                         newtask.blocked_reason = blocked_reason.strip()
-                    newtask.id = int(mo.group(1))
-                    state = 10
+                    closed_reason = None
+                    state = 3
                 else:
                     if blocked_reason is None:
                         blocked_reason = ""
                     blocked_reason += line
+            elif state == 3:
+                mo = re.match("## Id: (.*)", line)
+                if mo:
+                    if closed_reason:
+                        newtask.closed_reason = closed_reason.strip()
+                    newtask.id = int(mo.group(1))
+                    state = 10
+                else:
+                    if closed_reason is None:
+                        closed_reason = ""
+                    closed_reason += line
             elif state ==  10:
                 mo = re.match("## Date Created: (.*)", line)
                 if mo:
@@ -196,6 +211,7 @@ class StorageTest_Load(unittest.TestCase):
 #### Task
 ## State: Open
 ## Blocked Reason
+## Closed Reason
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
@@ -210,6 +226,7 @@ multiline
 #### Task
 ## State: Closed
 ## Blocked Reason
+## Closed Reason
 ## Id: 7
 ## Date Created: 1001
 ## Date Closed: 1004
@@ -224,6 +241,7 @@ Task7Description
 ## State: Blocked
 ## Blocked Reason
 BlockedReason
+## Closed Reason
 ## Id: 8
 ## Date Created: 1002
 ## Date Closed:
@@ -283,6 +301,7 @@ Task8Description
 #### Task
 ## State: Open
 ## Blocked Reason
+## Closed Reason
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
@@ -305,6 +324,7 @@ Task4Description
 #### Task
 ## State: Open
 ## Blocked Reason
+## Closed Reason
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
@@ -327,6 +347,7 @@ Task4Description
 #### Task
 ## State: Open
 ## Blocked Reason
+## Closed Reason
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
@@ -348,6 +369,7 @@ Task4Description
         fileDouble.set_contents("""
 #### Task
 ## Blocked Reason
+## Closed Reason
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
@@ -370,6 +392,30 @@ Task4Description
         fileDouble.set_contents("""
 #### Task
 ## State: Open
+## Closed Reason
+## Id: 4
+## Date Created: 1000
+## Date Closed:
+## Date Due:
+## Pomo Estimate:
+## Pomo Completed: 0
+## Summary
+Task4
+## Description
+Task4Description
+""")
+        openDouble.reset()
+        openDouble.add_file(fileDouble)
+
+        storage = Storage(TimeDouble())
+        self.assertFalse(storage.load('test_file'))
+
+    def test_load_invalid_datastore_missing_closed_reason(self):
+        fileDouble = FileDouble()
+        fileDouble.set_contents("""
+#### Task
+## State: Open
+## Blocked Reason
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
@@ -392,8 +438,9 @@ Task4Description
         fileDouble.set_contents("""
 #### Task
 ## State: Open
-## Id: 4
 ## Blocked Reason
+## Closed Reason
+## Id: 4
 ## Date Closed:
 ## Date Due:
 ## Pomo Estimate:
@@ -414,8 +461,9 @@ Task4Description
         fileDouble.set_contents("""
 #### Task
 ## State: Open
-## Id: 4
 ## Blocked Reason
+## Closed Reason
+## Id: 4
 ## Date Created: 1000
 ## Date Due:
 ## Pomo Estimate:
@@ -436,8 +484,9 @@ Task4Description
         fileDouble.set_contents("""
 #### Task
 ## State: Open
-## Id: 4
 ## Blocked Reason
+## Closed Reason
+## Id: 4
 ## Date Created: 1000
 ## Date Closed:
 ## Pomo Estimate:
@@ -458,8 +507,9 @@ Task4Description
         fileDouble.set_contents("""
 #### Task
 ## State: Open
-## Id: 4
 ## Blocked Reason
+## Closed Reason
+## Id: 4
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
@@ -480,8 +530,9 @@ Task4Description
         fileDouble.set_contents("""
 #### Task
 ## State: Open
-## Id: 4
 ## Blocked Reason
+## Closed Reason
+## Id: 4
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
@@ -524,6 +575,7 @@ Task4Description
 ## State: Blocked
 ## Blocked Reason
 BlockedReason
+## Closed Reason
 ## Id: 8
 ## Date Created: 1000
 ## Date Closed:
@@ -589,7 +641,7 @@ class StorageTest_Save(unittest.TestCase):
 
         task = Task("Task2", "Task2Description", 10002)
         task.id = 2
-        task.close(10003)
+        task.close(10003, "Test Reason")
         task.set_due_date(10004.1)
         storage.tasks.append(task)
 
@@ -604,6 +656,7 @@ class StorageTest_Save(unittest.TestCase):
 ## State: Blocked
 ## Blocked Reason
 BlockedReason
+## Closed Reason
 ## Id: 1
 ## Date Created: 10001
 ## Date Closed:
@@ -618,6 +671,8 @@ Multiline
 #### Task
 ## State: Closed
 ## Blocked Reason
+## Closed Reason
+Test Reason
 ## Id: 2
 ## Date Created: 10002
 ## Date Closed: 10003
@@ -658,6 +713,7 @@ Task2Description
 ## State: Blocked
 ## Blocked Reason
 BlockedReason
+## Closed Reason
 ## Id: 1
 ## Date Created: 1000
 ## Date Closed:
@@ -672,6 +728,7 @@ Multiline
 #### Task
 ## State: Closed
 ## Blocked Reason
+## Closed Reason
 ## Id: 2
 ## Date Created: 1001
 ## Date Closed: 1002
