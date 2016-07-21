@@ -14,6 +14,7 @@ class Task:
         self.date_due = None
         self.pomo_estimate = None
         self.pomo_completed = 0
+        self.time_spent = 0
 
     def __eq__(self, other):
         return self.summary == other.summary and self.description == other.description
@@ -23,6 +24,9 @@ class Task:
 
     def log_work(self):
         self.pomo_completed += 1
+
+    def log_time(self, t):
+        self.time_spent += t
 
     def set_due_date(self, epochT):
         self.date_due = epochT

@@ -10,6 +10,30 @@ openDouble = OpenDouble()
 if __name__ == '__main__':
     open = openDouble
 
+class FileWrapper:
+    def __init__(self, f):
+        self.f = f
+        self.rewindOn = False
+        self.last_line = None
+
+    def rewind(self):
+        self.rewindOn = True
+
+    def readline(self):
+        ret = None
+
+        if self.rewindOn and self.last_line is not None:
+            ret = self.last_line
+            self.rewindOn = False
+        else:
+            self.last_line = self.f.readline()
+            ret = self.last_line
+
+        return ret
+
+    def close(self):
+        self.f.close()
+
 class Storage:
     def __init__(self, time):
         self.tasks = []
@@ -69,32 +93,101 @@ class Storage:
 
         f.close()
 
+    def _loadField(self, file, name, hasfield=False, multiline=False):
+        line = file.readline()
+
+        if line is None:
+            return (False, None)
+
+        if hasfield and not multiline:
+                mo = re.match("## {:s}:(.*)".format(name), line)
+                if mo:
+                    ret = mo.group(1).strip()
+                    if ret == '':
+                        ret = None
+                    return (True, ret)
+                return (False, None)
+        elif hasfield and multiline:
+            mo = re.match("## {:s}".format(name), line)
+            if not mo:
+                return (False, None)
+            ret = []
+            while True:
+                line = file.readline()
+                if line is None:
+                    if ret == []:
+                        ret = None
+                    return (True, ret)
+                mo = re.match("##.*", line)
+                if not mo:
+                    ret.append(line)
+                else:
+                    file.rewind()
+                    if ret == []:
+                        ret = None
+                    return (True, ret)
+        else:
+            mo = re.match("## {:s}".format(name), line)
+            if mo:
+                return (True, None)
+            return (False, None)
+
+# #### Task
+# ## State: Open
+# ## Blocked Reason
+# ## Closed Reason
+# ## Id: 4
+# ## Date Created: 1000
+# ## Date Closed:
+# ## Date Due:
+# ## Pomo Estimate:
+# ## Pomo Completed: 0
+# ## Summary
+# Task4
+# ## Description
+# Task4Description word
+# multiline
+
     def load(self, filename):
         f = open(filename, 'r')
+        f = FileWrapper(f)
         state = "Start"
         newtask = None
         newpomo = None
 
+        skip_read = False
         while True:
-            line = f.readline()
+            if not skip_read:
+                line = f.readline()
+            skip_read = False
             if line == "":
                 break
             if state == "Start":
                 if re.match("#### Task", line):
                     newtask = Task("", "")
                     state = "Task_State"
+                    skip_read = True
                 if re.match("#### Pomodoro", line):
                     newpomo = Pomo()
                     state = "Pomo_Remaining"
             elif state == "Task_State":
-                mo = re.match("## State: (.*)", line)
-                if mo:
-                    newtask.state = mo.group(1)
-                    state = "Task_BlockedReason"
+                found, val = self._loadField(f, 'State')
+                newtask.state = val
+                state = "Task_BlockedReason"
+
             elif state == "Task_BlockedReason":
-                if re.match("## Blocked Reason", line):
-                    blocked_reason = None
-                    state = "Task_ClosedReason"
+                found, val = self._loadField(f, 'Blocked Reason', hasfield=True, multiline=True)
+                blocked_reason = None
+                if val is not None:
+                    blocked_reason = "\n".join(val)
+                state = "Task_ClosedReason"
+                # Left off here: Need to fix remaining failing test cases and replace parsing
+                # machine with calls to _loadField()
+
+
+                # if re.match("## Blocked Reason", line):
+                #     blocked_reason = None
+                #     state = "Task_ClosedReason"
             elif state == "Task_ClosedReason":
                 mo = re.match("## Closed Reason", line)
                 if mo:
@@ -162,6 +255,7 @@ class Storage:
                     self.tasks.append(newtask)
                     if re.match("#### Task", line):
                         state = "Task_State"
+                        skip_read = True
                         newtask = Task("", "")
                     else:
                         state = "Pomo_Remaining"
@@ -203,6 +297,7 @@ class Storage:
 class StorageTest_Load(unittest.TestCase):
     def setUp(self):
         None
+
 
     def test_load(self):
         fileDouble = FileDouble()
@@ -784,6 +879,91 @@ Task2Description
 ## Running: true
 ## Save Date: 1000.000000
 """, fileDouble.written_data)
+
+class StorageTest_LoadField(unittest.TestCase):
+    class TestFile:
+        def __init__(self, lines):
+            self.lines = lines
+            self.index = 0
+
+        def readline(self):
+            if self.index == len(self.lines):
+                return None
+            ret = self.lines[self.index]
+            self.index += 1
+            return ret
+
+        def close(self):
+            None
+
+    def setUp(self):
+        None
+
+    def test_LoadField(self):
+        s = Storage(TimeDouble())
+        tf = self.TestFile([
+                "## State: Open",
+                "## Blocked Reason",
+                "## Closed Reason",
+                "## Id: 4",
+                "## Date Created: 1000",
+                "## Date Closed:",
+                "## Date Due:",
+                "## Pomo Estimate:",
+                "## Pomo Completed: 0",
+                "## Summary",
+                "Task4",
+                "## Description",
+                "Task4Description word",
+                "multiline",
+                "#### Pomo"])
+        tf = FileWrapper(tf)
+
+        res, val = s._loadField(tf, "State", hasfield=True, multiline=False)
+        self.assertTrue(res)
+        self.assertEqual("Open", val)
+
+        res, val = s._loadField(tf, "Blocked Reason", hasfield=True, multiline=True)
+        self.assertTrue(res)
+        self.assertIsNone(val)
+
+        res, val = s._loadField(tf, "Closed Reason", hasfield=True, multiline=True)
+        self.assertTrue(res)
+        self.assertIsNone(val)
+
+        res, val = s._loadField(tf, "Id", hasfield=True, multiline=False)
+        self.assertTrue(res)
+        self.assertEqual('4', val)
+
+        res, val = s._loadField(tf, "Date Created", hasfield=True, multiline=False)
+        self.assertTrue(res)
+        self.assertEqual("1000", val)
+
+        res, val = s._loadField(tf, "Date Closed", hasfield=True, multiline=False)
+        self.assertTrue(res)
+        self.assertIsNone(val)
+
+        res, val = s._loadField(tf, "Date Due", hasfield=True, multiline=False)
+        self.assertTrue(res)
+        self.assertIsNone(val)
+
+        res, val = s._loadField(tf, "Pomo Estimate", hasfield=True, multiline=False)
+        self.assertTrue(res)
+        self.assertIsNone(val)
+
+        res, val = s._loadField(tf, "Pomo Completed", hasfield=True, multiline=False)
+        self.assertTrue(res)
+        self.assertEqual("0", val)
+
+        res, val = s._loadField(tf, "Summary", hasfield=True, multiline=True)
+        self.assertTrue(res)
+        self.assertEqual(["Task4"], val)
+
+        res, val = s._loadField(tf, "Description", hasfield=True, multiline=True)
+        self.assertTrue(res)
+        self.assertEqual(["Task4Description word","multiline"], val)
+
+        self.assertEqual("#### Pomo", tf.readline())
 
 if __name__ == '__main__':
     unittest.main()

@@ -58,12 +58,15 @@ class TskFrontEnd:
         self.fileParser.set_filename(filename)
         if not self.fileParser.create_file(task.summary, task.description):
             return "Temp file could not be created."
+        time_start = self.time.time()
         if self.subprocess.call('vim {:s}'.format(filename), shell=True) != 0:
             return "Editor could not be invoked."
         if not self.fileParser.load_file():
             return "Temp file could not be loaded."
         if not self.fileParser.parse():
             return "Temp file could not be parsed."
+        time_spent = self.time.time() - time_start
+        task.log_time(time_spent)
         task.summary = self.fileParser.summary
         task.description = self.fileParser.description
         return "Task {:d} has been updated.".format(id)
@@ -297,6 +300,9 @@ class TskDouble:
             self.set_due_date_relative_offset = due_date_offset
             return True
 
+        def log_time(self, t):
+            self.log_time_param = t
+
     def __init__(self):
         self.set_blocked_called = False
         self.set_blocked_reason = None
@@ -527,6 +533,12 @@ class TskFrontEndTest_EditCommand(unittest.TestCase):
         self.assertEquals("Task1Summary", self.tfpDouble.create_file_summary)
         self.assertEquals("Task1Description", self.tfpDouble.create_file_description)
         self.assertEquals("Task 1 has been updated.", ret)
+
+    def test_edit_task_logs_time(self):
+        self.time.add_time(100)
+        self.fe.add_task("Task1Summary", "Task1Description")
+        ret = self.fe.edit_task(1)
+        self.assertEquals(100, self.tsk.task.log_time_param)
 
     def test_edit_invalid_id(self):
         ret = self.fe.edit_task(10)
