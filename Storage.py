@@ -114,7 +114,7 @@ class Storage:
             ret = []
             while True:
                 line = file.readline()
-                if line is None:
+                if line == '':
                     if ret == []:
                         ret = None
                     return (True, ret)
@@ -131,22 +131,6 @@ class Storage:
             if mo:
                 return (True, None)
             return (False, None)
-
-# #### Task
-# ## State: Open
-# ## Blocked Reason
-# ## Closed Reason
-# ## Id: 4
-# ## Date Created: 1000
-# ## Date Closed:
-# ## Date Due:
-# ## Pomo Estimate:
-# ## Pomo Completed: 0
-# ## Summary
-# Task4
-# ## Description
-# Task4Description word
-# multiline
 
     def load(self, filename):
         f = open(filename, 'r')
@@ -171,88 +155,77 @@ class Storage:
                     newpomo = Pomo()
                     state = "Pomo_Remaining"
             elif state == "Task_State":
+
                 found, val = self._loadField(f, 'State')
+                if not found:
+                    return False
                 newtask.state = val
-                state = "Task_BlockedReason"
 
-            elif state == "Task_BlockedReason":
                 found, val = self._loadField(f, 'Blocked Reason', hasfield=True, multiline=True)
-                blocked_reason = None
+                if not found:
+                    return False
                 if val is not None:
-                    blocked_reason = "\n".join(val)
-                state = "Task_ClosedReason"
-                # Left off here: Need to fix remaining failing test cases and replace parsing
-                # machine with calls to _loadField()
+                    newtask.blocked_reason = "".join(val).strip()
 
+                found, val = self._loadField(f, 'Closed Reason', hasfield=True, multiline=True)
+                if not found:
+                    return False
+                if val is not None:
+                    newtask.closed_reason = "".join(val).strip()
 
-                # if re.match("## Blocked Reason", line):
-                #     blocked_reason = None
-                #     state = "Task_ClosedReason"
-            elif state == "Task_ClosedReason":
-                mo = re.match("## Closed Reason", line)
-                if mo:
-                    if blocked_reason:
-                        newtask.blocked_reason = blocked_reason.strip()
-                    closed_reason = None
-                    state = "Task_Id"
-                else:
-                    if blocked_reason is None:
-                        blocked_reason = ""
-                    blocked_reason += line
-            elif state == "Task_Id":
-                mo = re.match("## Id: (.*)", line)
-                if mo:
-                    if closed_reason:
-                        newtask.closed_reason = closed_reason.strip()
-                    newtask.id = int(mo.group(1))
-                    state = "Task_DateCreated"
-                else:
-                    if closed_reason is None:
-                        closed_reason = ""
-                    closed_reason += line
-            elif state ==  "Task_DateCreated":
-                mo = re.match("## Date Created: (.*)", line)
-                if mo:
-                    newtask.date_created = int(mo.group(1))
-                    state = "Task_DateClosed"
-            elif state == "Task_DateClosed":
-                mo = re.match("## Date Closed:(.*)", line)
-                if mo:
-                    if mo.group(1):
-                        newtask.date_closed = int(mo.group(1))
-                    state = "Task_DateDue"
-            elif state == "Task_DateDue":
-                mo = re.match("## Date Due:(.*)", line)
-                if mo:
-                    if mo.group(1):
-                        newtask.date_due = int(mo.group(1))
-                    state = "Task_PomoEstimate"
-            elif state == "Task_PomoEstimate":
-                mo = re.match("## Pomo Estimate:(.*)", line)
-                if mo:
-                    if mo.group(1):
-                        newtask.pomo_estimate = int(mo.group(1))
-                    state = "Task_PomoCompleted"
-            elif state == "Task_PomoCompleted":
-                mo = re.match("## Pomo Completed: (.*)", line)
-                if mo:
-                    newtask.pomo_completed = int(mo.group(1))
-                    state = "Task_Summary"
-            elif state == "Task_Summary":
-                if re.match("## Summary", line):
-                    summary = ""
-                    state = "Task_Description"
-            elif state == "Task_Description":
-                if re.match("## Description", line):
-                    newtask.summary = summary.strip()
-                    description = ""
-                    state = "End"
-                else:
-                    summary += line
+                found, val = self._loadField(f, 'Id', hasfield=True)
+                if not found:
+                    return False
+                if val is not None:
+                    newtask.id = int(val)
+
+                found, val = self._loadField(f, 'Date Created', hasfield=True)
+                if not found:
+                    return False
+                if val is not None:
+                    newtask.date_created = int(val)
+
+                found, val = self._loadField(f, 'Date Closed', hasfield=True)
+                if not found:
+                    return False
+                if val is not None:
+                    newtask.date_closed = int(val)
+
+                found, val = self._loadField(f, 'Date Due', hasfield=True)
+                if not found:
+                    return False
+                if val is not None:
+                    newtask.date_due = int(val)
+
+                found, val = self._loadField(f, 'Pomo Estimate', hasfield=True)
+                if not found:
+                    return False
+                if val is not None:
+                    newtask.pomo_estimate = int(val)
+
+                found, val = self._loadField(f, 'Pomo Completed', hasfield=True)
+                if not found:
+                    return False
+                if val is not None:
+                    newtask.pomo_completed = int(val)
+
+                found, val = self._loadField(f, 'Summary', hasfield=True, multiline=True)
+                if not found:
+                    return False
+                if val is not None:
+                    newtask.summary = "".join(val).strip()
+
+                found, val = self._loadField(f, 'Description', hasfield=True, multiline=True)
+                if not found:
+                    return False
+                if val is not None:
+                    newtask.description = "".join(val).strip()
+
+                self.tasks.append(newtask)
+                state = "End"
+
             elif state == "End":
                 if re.match("#### Task", line) or re.match("#### Pomodoro", line):
-                    newtask.description = description.strip()
-                    self.tasks.append(newtask)
                     if re.match("#### Task", line):
                         state = "Task_State"
                         skip_read = True
@@ -260,8 +233,6 @@ class Storage:
                     else:
                         state = "Pomo_Remaining"
                         newpomo = Pomo()
-                else:
-                    description += line
             elif state == "Pomo_Remaining":
                 mo = re.match("## Time Remaining: (.*)", line)
                 if mo:
@@ -287,8 +258,6 @@ class Storage:
                     state = "Start"
 
         if state == "End":
-            newtask.description = description.strip()
-            self.tasks.append(newtask)
             state = "Start"
 
         f.close()
