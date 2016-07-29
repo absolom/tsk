@@ -6,6 +6,7 @@ from Render import TskTextRender
 from Render import PomoRender
 from TskLogic import TskLogic
 from Storage import Storage
+from LockFile import LockFile
 import shutil
 import argparse
 import subprocess
@@ -13,8 +14,20 @@ import time
 import os.path
 import sys
 
+lock = LockFile()
 tsk = TskLogic()
 pomo = Pomo()
+
+def exitWithCode(code):
+    LockFile.remove()
+    sys.exit(code)
+
+if LockFile.exists():
+    print 'Lock file detected. Another instance of tsk may be open. Remove the lock file'
+    print 'in .tsk/ to override.'
+    sys.exit(1)
+else:
+    LockFile.create()
 
 if os.path.exists('.tsk'):
     try:
@@ -66,7 +79,8 @@ args = parser.parse_args()
 if args.command == "init":
     if os.path.exists('.tsk'):
         print "Tsk already initialized"
-        sys.exit(1)
+        LockFile.remove()
+        exitWithCode(1)
 
     os.makedirs('.tsk')
     f = open('.tsk/tskfile', 'w+')
@@ -76,18 +90,22 @@ if args.command == "init":
     proc.wait()
     if proc.returncode != 0:
         print "Failed to create git repo."
-        sys.exit(1)
+        LockFile.remove()
+        exitWithCode(1)
 
     print 'Tsk initialized.'
-    sys.exit(0)
+    LockFile.remove()
+    exitWithCode(0)
 
 if not os.path.exists('.tsk'):
-    print "Tsk directory not found."
-    sys.exit(1)
+    print "Tsk directory not found.  Use init command to initialize task in this directory."
+    LockFile.remove()
+    exitWithCode(1)
 
 if not os.path.isfile('.tsk/tskfile'):
     print "No tskfile database found."
-    sys.exit(1)
+    LockFile.remove()
+    exitWithCode(1)
 
 if args.command == "edit_task":
     parser = argparse.ArgumentParser(description='Opens text editor to edit task contents.')
@@ -196,3 +214,4 @@ if not skip_git:
     proc.wait()
 # if proc.returncode != 0:
 #     print "Failed to update Tsk's git repo."
+exitWithCode(0)
