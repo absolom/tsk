@@ -73,6 +73,8 @@ class Storage:
                 f.write("\n")
             f.write("## Pomo Completed: {:d}\n".format(int(task.pomo_completed)))
 
+            f.write("## Time Spent: {:d}\n".format(int(task.time_spent)))
+
             f.write("## Summary\n")
             for line in task.summary.split("\n"):
                 f.write(line + "\n")
@@ -209,6 +211,12 @@ class Storage:
                 if val is not None:
                     newtask.pomo_completed = int(val)
 
+                found, val = self._loadField(f, 'Time Spent', hasfield=True)
+                if not found:
+                    return False
+                if val is not None:
+                    newtask.time_spent = int(val)
+
                 found, val = self._loadField(f, 'Summary', hasfield=True, multiline=True)
                 if not found:
                     return False
@@ -281,6 +289,7 @@ class StorageTest_Load(unittest.TestCase):
 ## Date Due:
 ## Pomo Estimate:
 ## Pomo Completed: 0
+## Time Spent:
 ## Summary
 Task4
 ## Description
@@ -296,6 +305,7 @@ multiline
 ## Date Due: 1003
 ## Pomo Estimate:
 ## Pomo Completed: 3
+## Time Spent: 0
 ## Summary
 Task7
 ## Description
@@ -311,6 +321,7 @@ BlockedReason
 ## Date Due:
 ## Pomo Estimate: 10
 ## Pomo Completed: 4
+## Time Spent: 631
 ## Summary
 Task8
 ## Description
@@ -337,6 +348,7 @@ Task8Description
         self.assertIsNone(storage.tasks[0].date_due)
         self.assertIsNone(storage.tasks[0].pomo_estimate)
         self.assertEqual(0, storage.tasks[0].pomo_completed)
+        self.assertEqual(0, storage.tasks[0].time_spent)
 
         self.assertEqual("Task7", storage.tasks[1].summary)
         self.assertTrue(storage.tasks[1].is_closed())
@@ -348,6 +360,7 @@ Task8Description
         self.assertEqual(1003, storage.tasks[1].date_due)
         self.assertIsNone(storage.tasks[1].pomo_estimate)
         self.assertEqual(3, storage.tasks[1].pomo_completed)
+        self.assertEqual(0, storage.tasks[1].time_spent)
 
         self.assertEqual("Task8", storage.tasks[2].summary)
         self.assertTrue(storage.tasks[2].is_blocked())
@@ -360,6 +373,7 @@ Task8Description
         self.assertIsNone(storage.tasks[2].date_due)
         self.assertEqual(10, storage.tasks[2].pomo_estimate)
         self.assertEqual(4, storage.tasks[2].pomo_completed)
+        self.assertEqual(631, storage.tasks[2].time_spent)
 
     def test_load_invalid_datastore_missing_id(self):
         fileDouble = FileDouble()
@@ -648,6 +662,7 @@ BlockedReason
 ## Date Due:
 ## Pomo Estimate:
 ## Pomo Completed: 0
+## Time Spent: 0
 ## Summary
 Task8
 ## Description
@@ -709,6 +724,7 @@ class StorageTest_Save(unittest.TestCase):
         task.id = 2
         task.close(10003, "Test Reason")
         task.set_due_date(10004.1)
+        task.time_spent = 100
         storage.tasks.append(task)
 
         openDouble.reset()
@@ -729,6 +745,7 @@ BlockedReason
 ## Date Due:
 ## Pomo Estimate:
 ## Pomo Completed: 0
+## Time Spent: 0
 ## Summary
 Task1
 ## Description
@@ -745,6 +762,7 @@ Test Reason
 ## Date Due: 10004
 ## Pomo Estimate:
 ## Pomo Completed: 0
+## Time Spent: 100
 ## Summary
 Task2
 ## Description
@@ -786,6 +804,7 @@ BlockedReason
 ## Date Due:
 ## Pomo Estimate:
 ## Pomo Completed: 0
+## Time Spent: 0
 ## Summary
 Task1
 ## Description
@@ -801,6 +820,7 @@ Multiline
 ## Date Due:
 ## Pomo Estimate:
 ## Pomo Completed: 0
+## Time Spent: 0
 ## Summary
 Task2
 ## Description
