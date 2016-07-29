@@ -156,7 +156,7 @@ class Storage:
                     state = "Pomo_Remaining"
             elif state == "Task_State":
 
-                found, val = self._loadField(f, 'State')
+                found, val = self._loadField(f, 'State', hasfield=True)
                 if not found:
                     return False
                 newtask.state = val
@@ -328,6 +328,7 @@ Task8Description
         self.assertEqual(3, len(storage.tasks))
 
         self.assertEqual("Task4", storage.tasks[0].summary)
+        self.assertTrue(storage.tasks[0].is_open())
         self.assertEqual(4, storage.tasks[0].id)
         self.assertEqual("Task4Description word\nmultiline", storage.tasks[0].description)
         self.assertTrue(storage.tasks[0].is_open)
@@ -338,6 +339,7 @@ Task8Description
         self.assertEqual(0, storage.tasks[0].pomo_completed)
 
         self.assertEqual("Task7", storage.tasks[1].summary)
+        self.assertTrue(storage.tasks[1].is_closed())
         self.assertEqual(7, storage.tasks[1].id)
         self.assertEqual("Task7Description", storage.tasks[1].description)
         self.assertTrue(storage.tasks[1].is_closed)
@@ -348,6 +350,7 @@ Task8Description
         self.assertEqual(3, storage.tasks[1].pomo_completed)
 
         self.assertEqual("Task8", storage.tasks[2].summary)
+        self.assertTrue(storage.tasks[2].is_blocked())
         self.assertEqual(8, storage.tasks[2].id)
         self.assertEqual("Task8Description", storage.tasks[2].description)
         self.assertTrue(storage.tasks[2].is_blocked)
