@@ -192,7 +192,9 @@ elif args.command == "time_log":
     print fe.time_log(args.task_id, args.seconds)
 elif args.command == "sort_backlog":
     parser = argparse.ArgumentParser(description="Sort backlog by due date.")
-    print fe.sort_backlog()
+    parser.add_argument('-a', '--alphasort', action="store_true")
+    args = parser.parse_args(args.args)
+    print fe.sort_backlog(args.alphasort)
 elif args.command == "start":
     print fe.start()
     skip_git = True

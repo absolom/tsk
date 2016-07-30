@@ -174,8 +174,8 @@ class TskFrontEnd:
         task.log_time(t)
         return "Time recorded for Task {:d}.".format(id)
 
-    def sort_backlog(self):
-        self.tsk.sort_backlog()
+    def sort_backlog(self, secondarySort):
+        self.tsk.sort_backlog(secondarySort)
         return "Backlog sorted by due date."
 
 #### Test Doubles
