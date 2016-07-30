@@ -70,79 +70,49 @@ class TaskTest(unittest.TestCase):
     def setUp(self):
         self.task = Task("Task1", "")
 
+    def _verifyState(self, truthState):
+        states = ["closed", "open", "blocked", "active"]
+        for state in states:
+            if state == truthState:
+                self.assertTrue(eval("self.task.is_" + state + "()"))
+            else:
+                self.assertFalse(eval("self.task.is_" + state + "()"))
+
     def test_default_is_open(self):
         self.assertTrue(self.task.is_open())
 
-    def test_open_to_closed(self):
-        self.task.close()
-        self.assertTrue(self.task.is_closed())
-        self.assertFalse(self.task.is_open())
+    def test_close_task(self):
+        self.task.close(t=1000, reason="MyReason")
 
-    def test_open_to_blocked(self):
-        self.task.block("Reason")
-        self.assertFalse(self.task.is_open())
-        self.assertTrue(self.task.is_blocked())
-        self.assertEquals("Reason", self.task.blocked_reason)
+        self._verifyState("closed")
+        self.assertIsNone(self.task.blocked_reason)
+        self.assertEquals(1000, self.task.date_closed)
+        self.assertEquals("MyReason", self.task.closed_reason)
 
-    def test_open_to_active(self):
-        self.task.activate()
-        self.assertFalse(self.task.is_open())
-        self.assertTrue(self.task.is_active())
-
-    def test_closed_to_open(self):
-        self.task.close()
-        self.assertFalse(self.task.is_open())
-        self.assertTrue(self.task.is_closed())
-
-    def test_blocked_to_open(self):
-        self.task.block("Reason")
+    def test_open_task(self):
         self.task.open()
-        self.assertFalse(self.task.is_blocked())
-        self.assertTrue(self.task.is_open())
+
+        self._verifyState("open")
         self.assertIsNone(self.task.blocked_reason)
+        self.assertIsNone(self.task.closed_reason)
 
-    def test_blocked_to_closed(self):
-        self.task.block("Reason")
-        self.task.close()
-        self.assertFalse(self.task.is_blocked())
-        self.assertTrue(self.task.is_closed())
+    def test_block_task(self):
+        self.task.block("BlockReason")
+
+        self._verifyState("blocked")
+        self.assertEquals("BlockReason", self.task.blocked_reason)
+        self.assertIsNone(self.task.closed_reason)
+
+    def test_activate_task(self):
+        self.task.activate()
+
+        self._verifyState("active")
         self.assertIsNone(self.task.blocked_reason)
-
-    def test_blocked_to_active(self):
-        self.task.block("Reason")
-        self.task.activate()
-        self.assertFalse(self.task.is_blocked())
-        self.assertTrue(self.task.is_active())
-        self.assertIsNone(self.task.blocked_reason)
-
-    def test_active_to_closed(self):
-        self.task.activate()
-        self.task.close()
-        self.assertTrue(self.task.is_closed())
-
-    def test_active_to_open(self):
-        self.task.activate()
-        self.task.open()
-        self.assertFalse(self.task.is_active())
-        self.assertTrue(self.task.is_open())
-
-    def test_active_to_blocked(self):
-        self.task.activate()
-        self.task.block("Reason")
-        self.assertFalse(self.task.is_active())
-        self.assertTrue(self.task.is_blocked())
-
-    def test_set_blocked_reason(self):
-        self.task.block("Reason")
-        self.assertEquals("Reason", self.task.blocked_reason)
+        self.assertIsNone(self.task.closed_reason)
 
     def test_create_date(self):
         self.task = Task("Summary", "Description", 1001)
         self.assertEquals(1001, self.task.date_created)
-
-    def test_close_date(self):
-        self.task.close(1111)
-        self.assertEquals(1111, self.task.date_closed)
 
     def test_close_date_none_default(self):
         self.assertIsNone(self.task.date_closed)
