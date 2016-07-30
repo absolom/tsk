@@ -18,7 +18,7 @@ class TskFrontEnd:
         self.fileParser = fileParser
 
         self.backlog_max_status = 20
-        self.backlog_max = 45
+        self.backlog_max = 10000000
         self.renderTsk.set_backlog_max(self.backlog_max_status)
 
         self.closed_max_status = 20
