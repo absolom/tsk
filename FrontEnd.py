@@ -158,7 +158,7 @@ class TskFrontEnd:
         while self.pomo.monitor(self.time.time()):
             self.time.sleep(1)
 
-    def set_estimate(self, id, estimate):
+    def time_estimate(self, id, estimate):
         task = self.tsk.get_task(id)
         if task is None:
             return "Task {:d} could not be found.".format(id)
@@ -166,13 +166,13 @@ class TskFrontEnd:
         task.set_estimate(estimate)
         return "Estimate set for Task {:d}.".format(id)
 
-    def log_work(self, id):
+    def time_log(self, id, t):
         task = self.tsk.get_task(id)
         if task is None:
             return "Task {:d} could not be found.".format(id)
 
-        task.log_work()
-        return "Pomo recorded for Task {:d}.".format(id)
+        task.log_time(t)
+        return "Time recorded for Task {:d}.".format(id)
 
     def sort_backlog(self):
         self.tsk.sort_backlog()

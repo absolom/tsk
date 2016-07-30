@@ -32,10 +32,14 @@ class TskTextRender:
 
     def _get_estimate_string(self, task):
         estimate_string = ''
-        if task.pomo_estimate is not None:
-            estimate_string = " ({:d}/{:d})".format(task.pomo_completed, task.pomo_estimate)
-        elif task.pomo_completed > 0:
-            estimate_string = " ({:d})".format(task.pomo_completed)
+
+        pomoSpent = int(task.time_spent / 1800) if task.time_spent is not None else 0
+        pomoEstimate = int(task.time_estimate / 1800) if task.time_estimate is not None else 0
+
+        if pomoEstimate > 0:
+            estimate_string = " ({:d}/{:d})".format(pomoSpent, pomoEstimate)
+        elif pomoSpent > 0:
+            estimate_string = " ({:d})".format(pomoSpent)
         return estimate_string
 
     def _task_to_string(self, task, showDescription=True):
@@ -235,21 +239,19 @@ Task2 Description"""
         self.tsk.add("Task4")
         self.tsk.add("Task5")
 
-        self.tsk.get_task(1).set_estimate(1)
+        self.tsk.get_task(1).set_estimate(30*60)
 
-        self.tsk.get_task(2).set_estimate(10)
-        for i in range(0,4):
-            self.tsk.get_task(2).log_work()
+        self.tsk.get_task(2).set_estimate(30*60*2)
+        self.tsk.get_task(2).log_time(30*60)
 
-        self.tsk.get_task(3).log_work()
-        self.tsk.get_task(3).log_work()
+        self.tsk.get_task(3).log_time(30*60*3)
 
         self.tskfe = TskTextRender(self.tsk)
         self.tskfe.set_backlog_max(5)
         backlog_truth = """Backlog
 1     Task1 (0/1)
-2     Task2 (4/10)
-3     Task3 (2)
+2     Task2 (1/2)
+3     Task3 (3)
 4     Task4
 5     Task5"""
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string(100))

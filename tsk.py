@@ -63,8 +63,8 @@ valid_commands = [ "edit_task",
                    "show_task",
                    "init",
                    "set_due_date",
-                   "log_work",
-                   "set_estimate" ]
+                   "time_estimate",
+                   "time_log" ]
 
 parser = argparse.ArgumentParser(description='Self task management program.')
 parser.add_argument('command',  choices=valid_commands)
@@ -178,17 +178,18 @@ elif args.command == "remove_due_date":
     parser.add_argument('task_id', type=int)
     args = parser.parse_args(args.args)
     print fe.remove_due_date(args.task_id)
-elif args.command == "set_estimate":
-    parser = argparse.ArgumentParser(description='Sets the total estimate of work (in pomos) for this task.')
+elif args.command == "time_estimate":
+    parser = argparse.ArgumentParser(description='Sets the total estimate of work (in seconds) for this task.')
     parser.add_argument('task_id', type=int)
     parser.add_argument('estimate', type=int)
     args = parser.parse_args(args.args)
-    print fe.set_estimate(args.task_id, args.estimate)
-elif args.command == "log_work":
-    parser = argparse.ArgumentParser(description="Record a completed pomo towards a task's completion.")
+    print fe.time_estimate(args.task_id, args.estimate)
+elif args.command == "time_log":
+    parser = argparse.ArgumentParser(description="Record specified number of seconds towards a task's completion.")
     parser.add_argument('task_id', type=int)
+    parser.add_argument('seconds', type=int)
     args = parser.parse_args(args.args)
-    print fe.log_work(args.task_id)
+    print fe.time_log(args.task_id, args.seconds)
 elif args.command == "sort_backlog":
     parser = argparse.ArgumentParser(description="Sort backlog by due date.")
     print fe.sort_backlog()

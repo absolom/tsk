@@ -66,13 +66,7 @@ class Storage:
             else:
                 f.write("\n")
 
-            f.write("## Pomo Estimate:")
-            if task.pomo_estimate is not None:
-                f.write(" {:d}\n".format(int(task.pomo_estimate)))
-            else:
-                f.write("\n")
-            f.write("## Pomo Completed: {:d}\n".format(int(task.pomo_completed)))
-
+            f.write("## Time Estimate: {:d}\n".format(int(task.time_estimate)))
             f.write("## Time Spent: {:d}\n".format(int(task.time_spent)))
 
             f.write("## Summary\n")
@@ -156,6 +150,7 @@ class Storage:
                 if re.match("#### Pomodoro", line):
                     newpomo = Pomo()
                     state = "Pomo_Remaining"
+
             elif state == "Task_State":
 
                 found, val = self._loadField(f, 'State', hasfield=True)
@@ -199,17 +194,11 @@ class Storage:
                 if val is not None:
                     newtask.date_due = int(val)
 
-                found, val = self._loadField(f, 'Pomo Estimate', hasfield=True)
+                found, val = self._loadField(f, 'Time Estimate', hasfield=True)
                 if not found:
                     return False
                 if val is not None:
-                    newtask.pomo_estimate = int(val)
-
-                found, val = self._loadField(f, 'Pomo Completed', hasfield=True)
-                if not found:
-                    return False
-                if val is not None:
-                    newtask.pomo_completed = int(val)
+                    newtask.time_estimate = int(val)
 
                 found, val = self._loadField(f, 'Time Spent', hasfield=True)
                 if not found:
@@ -275,7 +264,6 @@ class StorageTest_Load(unittest.TestCase):
     def setUp(self):
         None
 
-
     def test_load(self):
         fileDouble = FileDouble()
         fileDouble.set_contents("""
@@ -287,8 +275,7 @@ class StorageTest_Load(unittest.TestCase):
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
 ## Time Spent:
 ## Summary
 Task4
@@ -303,8 +290,7 @@ multiline
 ## Date Created: 1001
 ## Date Closed: 1004
 ## Date Due: 1003
-## Pomo Estimate:
-## Pomo Completed: 3
+## Time Estimate: 10800
 ## Time Spent: 0
 ## Summary
 Task7
@@ -319,8 +305,7 @@ BlockedReason
 ## Date Created: 1002
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate: 10
-## Pomo Completed: 4
+## Time Estimate: 1000
 ## Time Spent: 631
 ## Summary
 Task8
@@ -346,8 +331,7 @@ Task8Description
         self.assertEqual(1000, storage.tasks[0].date_created)
         self.assertIsNone(storage.tasks[0].date_closed)
         self.assertIsNone(storage.tasks[0].date_due)
-        self.assertIsNone(storage.tasks[0].pomo_estimate)
-        self.assertEqual(0, storage.tasks[0].pomo_completed)
+        self.assertEqual(0, storage.tasks[0].time_estimate)
         self.assertEqual(0, storage.tasks[0].time_spent)
 
         self.assertEqual("Task7", storage.tasks[1].summary)
@@ -358,8 +342,7 @@ Task8Description
         self.assertEqual(1001, storage.tasks[1].date_created)
         self.assertEqual(1004, storage.tasks[1].date_closed)
         self.assertEqual(1003, storage.tasks[1].date_due)
-        self.assertIsNone(storage.tasks[1].pomo_estimate)
-        self.assertEqual(3, storage.tasks[1].pomo_completed)
+        self.assertEqual(10800, storage.tasks[1].time_estimate)
         self.assertEqual(0, storage.tasks[1].time_spent)
 
         self.assertEqual("Task8", storage.tasks[2].summary)
@@ -371,8 +354,7 @@ Task8Description
         self.assertEqual(1002, storage.tasks[2].date_created)
         self.assertIsNone(storage.tasks[2].date_closed)
         self.assertIsNone(storage.tasks[2].date_due)
-        self.assertEqual(10, storage.tasks[2].pomo_estimate)
-        self.assertEqual(4, storage.tasks[2].pomo_completed)
+        self.assertEqual(1000, storage.tasks[2].time_estimate)
         self.assertEqual(631, storage.tasks[2].time_spent)
 
     def test_load_invalid_datastore_missing_id(self):
@@ -385,8 +367,8 @@ Task8Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
+## Time Spent: 0
 ## Summary
 Task4
 ## Description
@@ -409,8 +391,8 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
+## Time Spent: 0
 Task4
 ## Description
 Task4Description
@@ -432,8 +414,8 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
+## Time Spent: 0
 ## Summary
 Task4
 Task4Description
@@ -454,8 +436,8 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
+## Time Spent: 0
 ## Summary
 Task4
 ## Description
@@ -477,8 +459,8 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
+## Time Spent: 0
 ## Summary
 Task4
 ## Description
@@ -500,8 +482,8 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
+## Time Spent: 0
 ## Summary
 Task4
 ## Description
@@ -523,8 +505,8 @@ Task4Description
 ## Id: 4
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
+## Time Spent: 0
 ## Summary
 Task4
 ## Description
@@ -546,8 +528,8 @@ Task4Description
 ## Id: 4
 ## Date Created: 1000
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
+## Time Spent: 0
 ## Summary
 Task4
 ## Description
@@ -569,8 +551,8 @@ Task4Description
 ## Id: 4
 ## Date Created: 1000
 ## Date Closed:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
+## Time Spent: 0
 ## Summary
 Task4
 ## Description
@@ -582,7 +564,7 @@ Task4Description
         storage = Storage(TimeDouble())
         self.assertFalse(storage.load('test_file'))
 
-    def test_load_missing_pomo_estimate(self):
+    def test_load_missing_time_estimate(self):
         fileDouble = FileDouble()
         fileDouble.set_contents("""
 #### Task
@@ -593,7 +575,7 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Completed: 0
+## Time Spent: 0
 ## Summary
 Task4
 ## Description
@@ -605,7 +587,7 @@ Task4Description
         storage = Storage(TimeDouble())
         self.assertFalse(storage.load('test_file'))
 
-    def test_load_missing_pomo_completed(self):
+    def test_load_missing_time_spent(self):
         fileDouble = FileDouble()
         fileDouble.set_contents("""
 #### Task
@@ -616,7 +598,7 @@ Task4Description
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
+## Time Estimate: 0
 ## Summary
 Task4
 ## Description
@@ -660,8 +642,7 @@ BlockedReason
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
 ## Time Spent: 0
 ## Summary
 Task8
@@ -743,8 +724,7 @@ BlockedReason
 ## Date Created: 10001
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
 ## Time Spent: 0
 ## Summary
 Task1
@@ -760,8 +740,7 @@ Test Reason
 ## Date Created: 10002
 ## Date Closed: 10003
 ## Date Due: 10004
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
 ## Time Spent: 100
 ## Summary
 Task2
@@ -802,8 +781,7 @@ BlockedReason
 ## Date Created: 1000
 ## Date Closed:
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
 ## Time Spent: 0
 ## Summary
 Task1
@@ -818,8 +796,7 @@ Multiline
 ## Date Created: 1001
 ## Date Closed: 1002
 ## Date Due:
-## Pomo Estimate:
-## Pomo Completed: 0
+## Time Estimate: 0
 ## Time Spent: 0
 ## Summary
 Task2
@@ -895,19 +872,11 @@ class StorageTest_LoadField(unittest.TestCase):
         s = Storage(TimeDouble())
         tf = self.TestFile([
                 "## State: Open",
-                "## Blocked Reason",
-                "## Closed Reason",
                 "## Id: 4",
-                "## Date Created: 1000",
                 "## Date Closed:",
-                "## Date Due:",
-                "## Pomo Estimate:",
-                "## Pomo Completed: 0",
                 "## Summary",
-                "Task4",
-                "## Description",
-                "Task4Description word",
-                "multiline",
+                "line1",
+                "line2",
                 "#### Pomo"])
         tf = FileWrapper(tf)
 
@@ -915,45 +884,17 @@ class StorageTest_LoadField(unittest.TestCase):
         self.assertTrue(res)
         self.assertEqual("Open", val)
 
-        res, val = s._loadField(tf, "Blocked Reason", hasfield=True, multiline=True)
-        self.assertTrue(res)
-        self.assertIsNone(val)
-
-        res, val = s._loadField(tf, "Closed Reason", hasfield=True, multiline=True)
-        self.assertTrue(res)
-        self.assertIsNone(val)
-
         res, val = s._loadField(tf, "Id", hasfield=True, multiline=False)
         self.assertTrue(res)
         self.assertEqual('4', val)
-
-        res, val = s._loadField(tf, "Date Created", hasfield=True, multiline=False)
-        self.assertTrue(res)
-        self.assertEqual("1000", val)
 
         res, val = s._loadField(tf, "Date Closed", hasfield=True, multiline=False)
         self.assertTrue(res)
         self.assertIsNone(val)
 
-        res, val = s._loadField(tf, "Date Due", hasfield=True, multiline=False)
-        self.assertTrue(res)
-        self.assertIsNone(val)
-
-        res, val = s._loadField(tf, "Pomo Estimate", hasfield=True, multiline=False)
-        self.assertTrue(res)
-        self.assertIsNone(val)
-
-        res, val = s._loadField(tf, "Pomo Completed", hasfield=True, multiline=False)
-        self.assertTrue(res)
-        self.assertEqual("0", val)
-
         res, val = s._loadField(tf, "Summary", hasfield=True, multiline=True)
         self.assertTrue(res)
-        self.assertEqual(["Task4"], val)
-
-        res, val = s._loadField(tf, "Description", hasfield=True, multiline=True)
-        self.assertTrue(res)
-        self.assertEqual(["Task4Description word","multiline"], val)
+        self.assertEqual(["line1", "line2"], val)
 
         self.assertEqual("#### Pomo", tf.readline())
 
