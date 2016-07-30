@@ -27,7 +27,7 @@ class Task:
     def set_due_date(self, epochT):
         self.date_due = epochT
 
-    def remove_due_date(self, epochT):
+    def remove_due_date(self):
         self.date_due = None
 
     def is_active(self):
