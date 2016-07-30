@@ -43,6 +43,7 @@ class TskFrontEnd:
         task.set_due_date(self.time.time() + seconds_offset)
 
         return "Task {:d}'s due date has been set.".format(id)
+
     def remove_due_date(self, id, date):
         task = self.tsk.get_task(id)
         if not task:
