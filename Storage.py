@@ -850,6 +850,7 @@ Task2Description
 """, fileDouble.written_data)
 
 class StorageTest_LoadField(unittest.TestCase):
+
     class TestFile:
         def __init__(self, lines):
             self.lines = lines
