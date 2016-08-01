@@ -7,6 +7,7 @@ from Render import PomoRender
 from TskLogic import TskLogic
 from Storage import Storage
 from LockFile import LockFile
+from TskGit import TskGit
 import shutil
 import argparse
 import subprocess
@@ -14,6 +15,8 @@ import time
 import os.path
 import sys
 import atexit
+
+git = TskGit(".tsk")
 
 lock = LockFile()
 tsk = TskLogic()
@@ -85,9 +88,7 @@ if args.command == "init":
     f = open('.tsk/tskfile', 'w+')
     f.close()
 
-    proc = subprocess.Popen("git init .tsk/", shell=True, stdout=subprocess.PIPE)
-    proc.wait()
-    if proc.returncode != 0:
+    if not git.init():
         print "Failed to create git repo."
         sys.exit(1)
 
@@ -207,8 +208,8 @@ storage = Storage(time)
 storage.tasks = tsk.tasks
 storage.pomo = pomo
 storage.save('.tsk/tskfile')
+
 if not skip_git:
-    proc = subprocess.Popen("cd .tsk && git add tskfile && git commit -m 'Updates tskfile.'", shell=True, stdout=subprocess.PIPE)
-    proc.wait()
+    git.commit()
 
 sys.exit(0)
