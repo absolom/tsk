@@ -10,9 +10,18 @@ class TaskFactoryDefault:
         return Task(summary, description)
 
 class TskLogic:
-    def __init__(self, taskFactory=TaskFactoryDefault()):
+    def __init__(self, taskFactory=TaskFactoryDefault(), t=time):
         self.tasks = []
         self.taskFactory = taskFactory
+        self.time = t
+
+    def set_due_date_relative(self, id, day_offset):
+        task = self.get_task(id)
+        if not task:
+            return False
+        seconds_offset = day_offset * 24 * 60 * 60
+        task.set_due_date(self.time.time() + seconds_offset)
+        return True
 
     def add(self, summary, description=""):
         ntask = self.taskFactory.create_task(summary, description)
