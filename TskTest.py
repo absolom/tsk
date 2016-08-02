@@ -95,11 +95,13 @@ class TskFrontEndTest(unittest.TestCase):
             time=timeDouble)
 
     def test_set_due_date_relative(self):
-        self._runTsk('status')
+
         self.assertTrue(self._runTsk('set_due_date 4 +10'))
         self.assertEquals(StorageDouble.storages[-1].tasks[0].date_due, 10*24*60*60)
+
         self.assertFalse(self._runTsk('set_due_date 2 +10'))
         self.assertEquals(StorageDouble.storages[-1].tasks[0].date_due, None)
+
         self.assertFalse(self._runTsk('set_due_date 4 10'))
         self.assertEquals(StorageDouble.storages[-1].tasks[0].date_due, None)
 
