@@ -15,11 +15,13 @@ import os.path
 import sys
 import atexit
 
-def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, tsk=TskLogic(),
+def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicCls=TskLogic,
     pomo=Pomo(), atexit=atexit, os=os, shutil=shutil, time=time, StorageCls=Storage,
     subprocess=subprocess, arguments=sys.argv[1:], TaskFileParserCls=TaskFileParser,
     TskFrontEndCls=TskFrontEnd, TskTextRenderCls=TskTextRender, PomoRenderCls=PomoRender,
     open=open):
+
+    tsk = TskLogicCls(t=time)
 
     atexit.register(LockFileCls.remove)
 
