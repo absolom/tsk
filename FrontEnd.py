@@ -275,13 +275,6 @@ class TskFrontEndTest(unittest.TestCase):
         ret = self.fe.activate(11)
         self.assertEquals("Failed to activate task 11.", ret)
 
-    def test_set_due_date_relative(self):
-        self.tsk.add("Summary", "Description")
-        self.time.set_time(1000)
-        ret = self.fe.set_due_date_relative(10, 1)
-        self.assertEquals("Task 10's due date has been set.", ret)
-        self.assertEquals(1000+24*60*60, self.tsk.task.set_due_date_relative_offset)
-
 class TskFrontEndTest_EditCommand(unittest.TestCase):
     def setUp(self):
         self.dbl1 = TskTextRenderDouble()
