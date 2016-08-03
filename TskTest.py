@@ -115,5 +115,13 @@ class TskFrontEndTest(unittest.TestCase):
         self.assertFalse(self._runTsk('set_due_date 4 10'))
         self.assertEquals(StorageDouble.storages[-1].tasks[0].date_due, None)
 
+    def test_remove_due_date(self):
+
+        self._runTsk('set_due_date 4 +10')
+        self.assertTrue(self._runTsk('remove_due_date 4'))
+        self.assertEquals(StorageDouble.storages[-1].tasks[0].date_due, None)
+
+        self.assertFalse(self._runTsk('remove_due_date 5'))
+
 if __name__ == '__main__':
     unittest.main()

@@ -186,7 +186,11 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
         parser = argparse.ArgumentParser(description='Removes the due date of a task.')
         parser.add_argument('task_id', type=int)
         args = parser.parse_args(args.args)
-        print fe.remove_due_date(args.task_id)
+        if tsk.remove_due_date(args.task_id):
+            print "Task {:d}'s due date has been removed.".format(args.task_id)
+        else:
+            print "Task {:d} could not be found.".format(args.task_id)
+            ret = False
     elif args.command == "time_estimate":
         parser = argparse.ArgumentParser(description='Sets the total estimate of work (in seconds) for this task.')
         parser.add_argument('task_id', type=int)

@@ -23,6 +23,13 @@ class TskLogic:
         task.set_due_date(self.time.time() + seconds_offset)
         return True
 
+    def remove_due_date(self, id):
+        task = self.get_task(id)
+        if not task:
+            return False
+        task.remove_due_date()
+        return True
+
     def add(self, summary, description=""):
         ntask = self.taskFactory.create_task(summary, description)
         nid = len(self.tasks)+1

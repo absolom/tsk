@@ -34,13 +34,6 @@ class TskFrontEnd:
 
         return "Task {:d}'s due date has been set.".format(id)
 
-    def remove_due_date(self, id):
-        task = self.tsk.get_task(id)
-        if not task:
-            return "Task {:d} could not be found.".format(id)
-        task.remove_due_date()
-        return "Task {:d}'s due date has been removed.".format(id)
-
     def edit_task(self, id):
         filename = '/tmp/tsk.tmp'
         task = self.tsk.get_task(id)
