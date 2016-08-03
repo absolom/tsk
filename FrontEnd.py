@@ -108,12 +108,6 @@ class TskFrontEnd:
 
         return "Failed to open task {:d}.".format(id)
 
-    def close(self, id, reason):
-        if self.tsk.set_closed(id, reason):
-            return "Task {:d} closed.".format(id)
-
-        return "Failed to close task {:d}.".format(id)
-
     def start(self):
         if self.pomo.start(self.time.time()):
             return "Pomodoro timer started."

@@ -201,5 +201,16 @@ class TskFrontEndTest(unittest.TestCase):
 
         self.assertFalse(self._runTsk('time_estimate 5 60'))
 
+    def test_close(self):
+        task = Task("Task", "", 0)
+        task.id = 1
+        task.open()
+        StorageDouble.add_task(task)
+
+        self.assertTrue(self._runTsk('close 1'))
+        self.assertTrue(StorageDouble.get_task(1).is_closed())
+
+        self.assertFalse(self._runTsk('close 2'))
+
 if __name__ == '__main__':
     unittest.main()

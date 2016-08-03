@@ -167,7 +167,11 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
         parser.add_argument('task_id', type=int)
         parser.add_argument('--r', default=None)
         args = parser.parse_args(args.args)
-        print fe.close(args.task_id, args.r)
+        if tsk.set_closed(args.task_id, args.r):
+            print "Task {:d} closed.".format(args.task_id)
+        else:
+            print "Failed to close task {:d}.".format(args.task_id)
+            ret = False
     elif args.command == "set_due_date":
         parser = argparse.ArgumentParser(description='Changes the due date of a task.')
         parser.add_argument('task_id', type=int)
