@@ -291,31 +291,6 @@ class TaskStateTest(unittest.TestCase):
         task = self.tsk.get_task(id)
         self.assertTrue(task.is_open())
 
-    def test_close_open_task(self):
-        _ , id = self.tsk.add("Task1")
-        self.assertTrue(self.tsk.set_closed(id, "Reason"))
-        task = self.tsk.get_task(id)
-        self.assertTrue(task.is_closed())
-
-    def test_close_invalid_id(self):
-        self.assertFalse(self.tsk.set_closed(1, "Reason"))
-
-    def test_closed_reason(self):
-        _ , id = self.tsk.add("Task1")
-        self.assertTrue(self.tsk.set_closed(id, "Reason"))
-        task = self.tsk.get_task(id)
-        self.assertEquals("Reason", task.closed_reason)
-
-    def test_close_closed_task(self):
-        _ , id = self.tsk.add("Task1")
-        self.assertTrue(self.tsk.set_closed(id, "Reason"))
-        self.assertTrue(self.tsk.set_closed(id, "Reason"))
-
-    def test_close_active_task(self):
-        _ , id = self.tsk.add("Task1")
-        self.tsk.set_active(id)
-        self.assertTrue(self.tsk.set_closed(id, "Reason"))
-
     def test_set_active_flags_task_as_active(self):
         _ , id = self.tsk.add("Task1")
         self.tsk.set_active(id)

@@ -223,14 +223,6 @@ class TskFrontEndTest(unittest.TestCase):
         ret = self.fe.open(11)
         self.assertEquals("Failed to open task 11.", ret)
 
-    def test_close(self):
-        ret = self.fe.close(10, "Reason")
-        self.assertEquals("Task 10 closed.", ret)
-
-    def test_close_fail(self):
-        ret = self.fe.close(11, "Reason")
-        self.assertEquals("Failed to close task 11.", ret)
-
     def test_activate(self):
         ret = self.fe.activate(10)
         self.assertEquals("Task 10 activated.", ret)
