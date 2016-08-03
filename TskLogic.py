@@ -249,23 +249,6 @@ class TskTest(unittest.TestCase):
             self.open_called = True
             return self.open_return
 
-    def test_open(self):
-        dbl = self.TaskDouble()
-        self.factory.set_task(dbl)
-        _ , id = self.tsk.add("Summary")
-        self.assertTrue(self.tsk.set_open(id))
-        self.assertTrue(dbl.open_called)
-
-    def test_open_badid(self):
-        self.assertFalse(self.tsk.set_open(10))
-
-    def test_open_badstate(self):
-        dbl = self.TaskDouble()
-        dbl.open_return = False
-        self.factory.set_task(dbl)
-        _ , id = self.tsk.add("Summary")
-        self.assertFalse(self.tsk.set_open(id))
-
 class TaskStateTest(unittest.TestCase):
 
     def setUp(self):

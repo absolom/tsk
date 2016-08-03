@@ -224,5 +224,16 @@ class TskFrontEndTest(unittest.TestCase):
 
         self.assertFalse(self._runTsk('close 2'))
 
+    def test_open(self):
+        task = Task("Task", "", 0)
+        task.id = 1
+        task.close()
+        StorageDouble.add_task(task)
+
+        self.assertTrue(self._runTsk('open 1'))
+        self.assertTrue(StorageDouble.get_task(1).is_open())
+
+        self.assertFalse(self._runTsk('open 2'))
+
 if __name__ == '__main__':
     unittest.main()

@@ -147,7 +147,11 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
         parser = argparse.ArgumentParser(description='Changes state of task to open state.')
         parser.add_argument('task_id', type=int)
         args = parser.parse_args(args.args)
-        print fe.open(args.task_id)
+        if tsk.set_open(args.task_id):
+            print "Task {:d} opened.".format(args.task_id)
+        else:
+            print "Failed to open task {:d}.".format(args.task_id)
+            ret = False
     elif args.command == "move":
         parser = argparse.ArgumentParser(description='Moves a task in the backlog to a new position (use +/- for relative).')
         parser.add_argument('task_id', type=int)

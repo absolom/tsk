@@ -102,12 +102,6 @@ class TskFrontEnd:
 
         return "Failed to move task {:d}.".format(id)
 
-    def open(self, id):
-        if self.tsk.set_open(id):
-            return "Task {:d} opened.".format(id)
-
-        return "Failed to open task {:d}.".format(id)
-
     def start(self):
         if self.pomo.start(self.time.time()):
             return "Pomodoro timer started."
@@ -214,14 +208,6 @@ class TskFrontEndTest(unittest.TestCase):
         ret = self.fe.block(11, "MyReason")
         self.assertTrue(self.tsk.set_blocked_called)
         self.assertEquals("Failed to mark task 11 blocked.", ret)
-
-    def test_open(self):
-        ret = self.fe.open(10)
-        self.assertEquals("Task 10 opened.", ret)
-
-    def test_open_fail(self):
-        ret = self.fe.open(11)
-        self.assertEquals("Failed to open task 11.", ret)
 
     def test_activate(self):
         ret = self.fe.activate(10)
