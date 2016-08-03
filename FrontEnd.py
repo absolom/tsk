@@ -34,9 +34,6 @@ class TskFrontEnd:
 
         return "Task {:d}'s due date has been set.".format(id)
 
-    def set_due_date_relative(self, id, day_offset):
-        return self.tsk.set_due_date_relative(id, day_offset)
-
     def remove_due_date(self, id):
         task = self.tsk.get_task(id)
         if not task:

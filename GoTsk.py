@@ -15,13 +15,18 @@ import os.path
 import sys
 import atexit
 
-def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicCls=TskLogic,
+class TskLogicFactory:
+    @staticmethod
+    def get(*args, **kwargs):
+        return TskLogic(*args, **kwargs)
+
+def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFactory,
     pomo=Pomo(), atexit=atexit, os=os, shutil=shutil, time=time, StorageCls=Storage,
     subprocess=subprocess, arguments=sys.argv[1:], TaskFileParserCls=TaskFileParser,
     TskFrontEndCls=TskFrontEnd, TskTextRenderCls=TskTextRender, PomoRenderCls=PomoRender,
     open=open):
 
-    tsk = TskLogicCls(t=time)
+    tsk = TskLogicFactory.get(t=time)
 
     atexit.register(LockFileCls.remove)
 
@@ -169,7 +174,7 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicCls=TskLogic,
         parser.add_argument('date')
         args = parser.parse_args(args.args)
         if args.date[0] == '+' or args.date[0] == '-':
-            if fe.set_due_date_relative(args.task_id, int(args.date)):
+            if tsk.set_due_date_relative(args.task_id, int(args.date)):
                 print "Task {:d}'s due date has been set.".format(args.task_id)
             else:
                 print "Task {:d} could not be found.".format(args.task_id)

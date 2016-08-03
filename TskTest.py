@@ -5,6 +5,7 @@ import time
 from Storage import Storage
 from GoTsk import goTsk
 from Task import Task
+from TskLogic import TaskFactoryDefault
 
 class PomoDouble:
     def __init__(self):
@@ -76,6 +77,15 @@ class PathDouble:
 
 class OsDouble:
     path = PathDouble()
+
+class TskLogicDouble:
+    def __init__(self, taskFactory=TaskFactoryDefault(), t=time):
+        pass
+
+class TskLogicDoubleFactory:
+    @staticmethod
+    def get(*args, **kwargs):
+        return TskLogicDouble(*args, **kwargs)
 
 class TskFrontEndTest(unittest.TestCase):
     def setUp(self):
