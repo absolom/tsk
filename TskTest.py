@@ -61,6 +61,11 @@ class StorageDouble:
         return True
 
     @staticmethod
+    def reset():
+        StorageDouble.storages = []
+        StorageDouble.tasks = []
+
+    @staticmethod
     def add_task(task):
         StorageDouble.tasks.append(task)
 
@@ -103,6 +108,7 @@ class TskLogicDoubleFactory:
 
 class TskFrontEndTest(unittest.TestCase):
     def setUp(self):
+        StorageDouble.reset()
         task = Task("Task4", "", 0)
         task.id = 4
         StorageDouble.add_task(task)
