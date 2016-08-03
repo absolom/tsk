@@ -195,5 +195,11 @@ class TskFrontEndTest(unittest.TestCase):
         idOrder = [ t.id for t in StorageDouble.tasks ]
         self.assertEquals(idOrderTruth, idOrder)
 
+    def test_time_estimate(self):
+        self.assertTrue(self._runTsk('time_estimate 4 60'))
+        self.assertEquals(StorageDouble.get_task(4).time_estimate, 60)
+
+        self.assertFalse(self._runTsk('time_estimate 5 60'))
+
 if __name__ == '__main__':
     unittest.main()

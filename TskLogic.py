@@ -150,6 +150,13 @@ class TskLogic:
             return task
         return None
 
+    def time_estimate(self, id, estimate):
+        task = self.get_task(id)
+        if task is None:
+            return False
+        task.set_estimate(estimate)
+        return True
+
 class TskTest(unittest.TestCase):
     class TaskDoubleFactory():
         def __init__(self):

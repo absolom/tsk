@@ -142,14 +142,6 @@ class TskFrontEnd:
         while self.pomo.monitor(self.time.time()):
             self.time.sleep(1)
 
-    def time_estimate(self, id, estimate):
-        task = self.tsk.get_task(id)
-        if task is None:
-            return "Task {:d} could not be found.".format(id)
-
-        task.set_estimate(estimate)
-        return "Estimate set for Task {:d}.".format(id)
-
 #### Test Doubles
 
 openDouble = OpenDouble()

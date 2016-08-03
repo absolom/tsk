@@ -196,7 +196,11 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
         parser.add_argument('task_id', type=int)
         parser.add_argument('estimate', type=int)
         args = parser.parse_args(args.args)
-        print fe.time_estimate(args.task_id, args.estimate)
+        if tsk.time_estimate(args.task_id, args.estimate):
+            print "Estimate set for Task {:d}.".format(args.task_id)
+        else:
+            print "Task {:d} could not be found.".format(args.task_id)
+            ret = False
     elif args.command == "time_log":
         parser = argparse.ArgumentParser(description="Record specified number of seconds towards a task's completion.")
         parser.add_argument('task_id', type=int)
