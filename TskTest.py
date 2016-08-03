@@ -48,11 +48,6 @@ class StorageDouble:
     def __init__(self, t):
         self.tasks = StorageDouble.tasks
         self.pomo = PomoDouble()
-        # task = Task("Task4", "", 0)
-        # task.id = 4
-        # self.tasks = [task]
-        # self.pomo = PomoDouble()
-        # StorageDouble.storages.append(self)
 
     def load(self, file):
         return True
@@ -150,39 +145,55 @@ class TskFrontEndTest(unittest.TestCase):
         self.assertFalse(self._runTsk('time_log 5 60'))
 
     def test_sort_backlog(self):
-        StorageDouble.tasks = []
+        StorageDouble.reset()
+        #            [Summary, id, due_date]
+        tasksTruth = [["Task1", 1, 9],
+                      ["Task2", 2, 8],
+                      ["Task3", 3, 7],
+                      ["Task4", 4, 6],
+                      ["Taske", 5, 5],
+                      ["Taskd", 6, 4],
+                      ["Taskc", 7, 3],
+                      ["Taskb", 8, 2],
+                      ["Taska", 9, 1]]
         # Add some tasks and set due dates
-        for i in range(1, 10):
-            task = Task("Task{:d}".format(i), "", 0)
-            task.id = i
-            task.set_due_date((10 - i))
+        for truth in tasksTruth:
+            task = Task(truth[0], "", 0)
+            task.id = truth[1]
+            task.set_due_date(truth[2])
             StorageDouble.add_task(task)
 
         # Verify they get sorted correctly
         self.assertTrue(self._runTsk('sort_backlog'))
-        for i in range(1, 10):
-            self.assertEquals(i, StorageDouble.tasks[-i].id)
+        idOrderTruth = [9, 8, 7, 6, 5, 4, 3, 2, 1]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
 
     def test_sort_backlog_alphanumeric(self):
-        StorageDouble.tasks = []
-        # Add some tasks and set due dates
-        for i in range(1, 5):
-            task = Task("Task{:d}".format(i), "", 0)
-            task.id = i
-            task.set_due_date((10 - i))
-            StorageDouble.add_task(task)
+        StorageDouble.reset()
+        #            [Summary, id, due_date]
+        tasksTruth = [["Task1", 1, 9],
+                      ["Task2", 2, 8],
+                      ["Task3", 3, 7],
+                      ["Task4", 4, 6],
+                      ["Taske", 5, None],
+                      ["Taskd", 6, None],
+                      ["Taskc", 7, None],
+                      ["Taskb", 8, None],
+                      ["Taska", 9, None]]
 
-        for i in range(5, 10):
-            task = Task("Task{:s}".format(chr(45-i)), "", 0)
-            task.id = i
+        # Add some tasks and set due dates
+        for truth in tasksTruth:
+            task = Task(truth[0], "", 0)
+            task.id = truth[1]
+            task.set_due_date(truth[2])
             StorageDouble.add_task(task)
 
         # Verify they get sorted correctly
         self.assertTrue(self._runTsk('sort_backlog -a'))
-        for i in range(1, 5):
-            self.assertEquals(i, StorageDouble.tasks[-(i+5)].id)
-        for i in range(5, 10):
-            self.assertEquals(i, StorageDouble.tasks[-(i-4)].id)
+        idOrderTruth = [4, 3, 2, 1, 9, 8, 7, 6, 5]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
 
 if __name__ == '__main__':
     unittest.main()
