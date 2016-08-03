@@ -81,12 +81,6 @@ class TskFrontEnd:
         self.renderTsk.set_backlog_max(self.backlog_max_status)
         return ret
 
-    def block(self, id, reason):
-        if self.tsk.set_blocked(id, reason):
-            return "Task {:d} marked blocked.".format(id)
-
-        return "Failed to mark task {:d} blocked.".format(id)
-
     def set_position(self, id, pos):
         if self.tsk.set_backlog_position(id, pos):
             return "Task {:d} moved to position {:d}.".format(id, pos)
@@ -196,18 +190,6 @@ class TskFrontEndTest(unittest.TestCase):
         self.assertEquals(2, len(self.dbl1.set_closed_max_called))
         self.assertEquals(self.fe.closed_max, self.dbl1.set_closed_max_max[0])
         self.assertEquals(self.fe.closed_max_status, self.dbl1.set_closed_max_max[1])
-
-    def test_block(self):
-        ret = self.fe.block(10, "MyReason")
-        self.assertTrue(self.tsk.set_blocked_called)
-        self.assertEquals("MyReason", self.tsk.set_blocked_reason)
-        self.assertEquals(10, self.tsk.set_blocked_id)
-        self.assertEquals("Task 10 marked blocked.", ret)
-
-    def test_block_fail(self):
-        ret = self.fe.block(11, "MyReason")
-        self.assertTrue(self.tsk.set_blocked_called)
-        self.assertEquals("Failed to mark task 11 blocked.", ret)
 
     def test_activate(self):
         ret = self.fe.activate(10)

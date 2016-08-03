@@ -235,5 +235,13 @@ class TskFrontEndTest(unittest.TestCase):
 
         self.assertFalse(self._runTsk('open 2'))
 
+    def test_block(self):
+        self.assertTrue(self._runTsk('block 4 Reason'))
+        self.assertEquals("Reason", StorageDouble.get_task(4).blocked_reason)
+        self.assertTrue(self._runTsk('block 4 Reason2'))
+        self.assertEquals("Reason2", StorageDouble.get_task(4).blocked_reason)
+
+        self.assertFalse(self._runTsk('block 1 Reason'))
+
 if __name__ == '__main__':
     unittest.main()

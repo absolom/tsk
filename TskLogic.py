@@ -290,27 +290,6 @@ class TaskStateTest(unittest.TestCase):
         self.assertFalse(task.is_active())
         self.assertTrue(task2.is_active())
 
-    def test_set_blocked(self):
-        _ , id = self.tsk.add("Task1")
-        self.assertTrue(self.tsk.set_blocked(id, "BlockedReason"))
-        task = self.tsk.get_task(id)
-        self.assertTrue(task.is_blocked())
-
-    def test_set_blocked_invalid_id(self):
-        self.assertFalse(self.tsk.set_blocked(1, "BlockedReason"))
-
-    def test_get_blocked_reason(self):
-        _ , id = self.tsk.add("Task1")
-        self.tsk.set_blocked(id, "BlockedReason")
-        task = self.tsk.get_task(id)
-        self.assertEquals("BlockedReason", task.blocked_reason)
-
-    def test_get_blocked_reason_default(self):
-        _ , id = self.tsk.add("Task1")
-        self.tsk.set_blocked(id)
-        task = self.tsk.get_task(id)
-        self.assertEquals("", task.blocked_reason)
-
 class SortingTest(unittest.TestCase):
     def setUp(self):
         self.tsk = TskLogic()

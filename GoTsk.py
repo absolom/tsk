@@ -142,7 +142,11 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
         parser.add_argument('task_id', type=int)
         parser.add_argument('reason')
         args = parser.parse_args(args.args)
-        print fe.block(args.task_id, args.reason)
+        if tsk.set_blocked(args.task_id, args.reason):
+            print "Task {:d} marked blocked.".format(args.task_id)
+        else:
+            print "Failed to mark task {:d} blocked.".format(args.task_id)
+            ret = False
     elif args.command == "open":
         parser = argparse.ArgumentParser(description='Changes state of task to open state.')
         parser.add_argument('task_id', type=int)
