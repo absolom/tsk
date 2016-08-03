@@ -211,7 +211,8 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
         parser = argparse.ArgumentParser(description="Sort backlog by due date.")
         parser.add_argument('-a', '--alphasort', action="store_true")
         args = parser.parse_args(args.args)
-        print fe.sort_backlog(args.alphasort)
+        tsk.sort_backlog(args.alphasort)
+        print "Backlog sorted by due date."
     elif args.command == "start":
         print fe.start()
         skip_git = True

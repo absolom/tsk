@@ -150,10 +150,6 @@ class TskFrontEnd:
         task.set_estimate(estimate)
         return "Estimate set for Task {:d}.".format(id)
 
-    def sort_backlog(self, secondarySort):
-        self.tsk.sort_backlog(secondarySort)
-        return "Backlog sorted by due date."
-
 #### Test Doubles
 
 openDouble = OpenDouble()

@@ -353,29 +353,6 @@ class SortingTest(unittest.TestCase):
         _ , self.id2 = self.tsk.add("Task1")
         _ , self.id3 = self.tsk.add("Task3")
 
-    def test_sort_backlog(self):
-        self.tsk.get_task(self.id1).set_due_date(1000)
-        self.tsk.get_task(self.id3).set_due_date(999)
-        self.tsk.sort_backlog()
-        tasks = self.tsk.list_tasks()
-        self.assertEquals(self.tsk.get_task(self.id3), tasks[0])
-        self.assertEquals(self.tsk.get_task(self.id1), tasks[1])
-        self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
-
-    def test_sort_backlog_alpha(self):
-        _ , self.id4 = self.tsk.add("other")
-        _ , self.id5 = self.tsk.add("zzz")
-        _ , self.id6 = self.tsk.add("aaa")
-        self.tsk.get_task(self.id3).set_due_date(1000)
-        self.tsk.sort_backlog(True)
-        tasks = self.tsk.list_tasks()
-        self.assertEquals(self.tsk.get_task(self.id3), tasks[0])
-        self.assertEquals(self.tsk.get_task(self.id6), tasks[1])
-        self.assertEquals(self.tsk.get_task(self.id4), tasks[2])
-        self.assertEquals(self.tsk.get_task(self.id2), tasks[3])
-        self.assertEquals(self.tsk.get_task(self.id1), tasks[4])
-        self.assertEquals(self.tsk.get_task(self.id5), tasks[5])
-
     def test_sort_closed(self):
         self.tsk.get_task(self.id1).close(3)
         self.tsk.get_task(self.id2).close(1)

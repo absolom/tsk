@@ -44,18 +44,32 @@ class LockFileDouble:
 
 class StorageDouble:
     storages = []
+    tasks = []
     def __init__(self, t):
-        task = Task("Task4", "", 0)
-        task.id = 4
-        self.tasks = [task]
+        self.tasks = StorageDouble.tasks
         self.pomo = PomoDouble()
-        StorageDouble.storages.append(self)
+        # task = Task("Task4", "", 0)
+        # task.id = 4
+        # self.tasks = [task]
+        # self.pomo = PomoDouble()
+        # StorageDouble.storages.append(self)
 
     def load(self, file):
         return True
 
     def save(self, file):
         return True
+
+    @staticmethod
+    def add_task(task):
+        StorageDouble.tasks.append(task)
+
+    @staticmethod
+    def get_task(id):
+        for task in StorageDouble.tasks:
+            if task.id == id:
+                return task
+        return None
 
 def openDouble(file, mode):
     pass
@@ -89,7 +103,9 @@ class TskLogicDoubleFactory:
 
 class TskFrontEndTest(unittest.TestCase):
     def setUp(self):
-        pass
+        task = Task("Task4", "", 0)
+        task.id = 4
+        StorageDouble.add_task(task)
 
     def tearDown(self):
         pass
@@ -107,28 +123,60 @@ class TskFrontEndTest(unittest.TestCase):
     def test_set_due_date_relative(self):
 
         self.assertTrue(self._runTsk('set_due_date 4 +10'))
-        self.assertEquals(StorageDouble.storages[-1].tasks[0].date_due, 10*24*60*60)
-
+        self.assertEquals(StorageDouble.get_task(4).date_due, 10*24*60*60)
         self.assertFalse(self._runTsk('set_due_date 2 +10'))
-        self.assertEquals(StorageDouble.storages[-1].tasks[0].date_due, None)
-
         self.assertFalse(self._runTsk('set_due_date 4 10'))
-        self.assertEquals(StorageDouble.storages[-1].tasks[0].date_due, None)
+        self.assertEquals(StorageDouble.get_task(4).date_due, 10*24*60*60)
 
     def test_remove_due_date(self):
 
         self._runTsk('set_due_date 4 +10')
         self.assertTrue(self._runTsk('remove_due_date 4'))
-        self.assertEquals(StorageDouble.storages[-1].tasks[0].date_due, None)
+        self.assertEquals(StorageDouble.get_task(4).date_due, None)
 
         self.assertFalse(self._runTsk('remove_due_date 5'))
 
     def test_time_log(self):
 
         self.assertTrue(self._runTsk('time_log 4 60'))
-        self.assertEquals(StorageDouble.storages[-1].tasks[0].time_spent, 60)
+        self.assertEquals(StorageDouble.get_task(4).time_spent, 60)
 
         self.assertFalse(self._runTsk('time_log 5 60'))
+
+    def test_sort_backlog(self):
+        StorageDouble.tasks = []
+        # Add some tasks and set due dates
+        for i in range(1, 10):
+            task = Task("Task{:d}".format(i), "", 0)
+            task.id = i
+            task.set_due_date((10 - i))
+            StorageDouble.add_task(task)
+
+        # Verify they get sorted correctly
+        self.assertTrue(self._runTsk('sort_backlog'))
+        for i in range(1, 10):
+            self.assertEquals(i, StorageDouble.tasks[-i].id)
+
+    def test_sort_backlog_alphanumeric(self):
+        StorageDouble.tasks = []
+        # Add some tasks and set due dates
+        for i in range(1, 5):
+            task = Task("Task{:d}".format(i), "", 0)
+            task.id = i
+            task.set_due_date((10 - i))
+            StorageDouble.add_task(task)
+
+        for i in range(5, 10):
+            task = Task("Task{:s}".format(chr(45-i)), "", 0)
+            task.id = i
+            StorageDouble.add_task(task)
+
+        # Verify they get sorted correctly
+        self.assertTrue(self._runTsk('sort_backlog -a'))
+        for i in range(1, 5):
+            self.assertEquals(i, StorageDouble.tasks[-(i+5)].id)
+        for i in range(5, 10):
+            self.assertEquals(i, StorageDouble.tasks[-(i-4)].id)
 
 if __name__ == '__main__':
     unittest.main()
