@@ -150,14 +150,6 @@ class TskFrontEnd:
         task.set_estimate(estimate)
         return "Estimate set for Task {:d}.".format(id)
 
-    def time_log(self, id, t):
-        task = self.tsk.get_task(id)
-        if task is None:
-            return "Task {:d} could not be found.".format(id)
-
-        task.log_time(t)
-        return "Time recorded for Task {:d}.".format(id)
-
     def sort_backlog(self, secondarySort):
         self.tsk.sort_backlog(secondarySort)
         return "Backlog sorted by due date."
