@@ -81,21 +81,6 @@ class TskFrontEnd:
         self.renderTsk.set_backlog_max(self.backlog_max_status)
         return ret
 
-    def set_position(self, id, pos):
-        if self.tsk.set_backlog_position(id, pos):
-            return "Task {:d} moved to position {:d}.".format(id, pos)
-
-        return "Failed to move task {:d}.".format(id)
-
-    def set_position_relative(self, id, offset):
-        if self.tsk.set_backlog_position_relative(id, offset):
-            if offset >= 0:
-                return "Task {:d} moved {:d} up.".format(id, offset)
-            else:
-                return "Task {:d} moved {:d} down.".format(id, offset)
-
-        return "Failed to move task {:d}.".format(id)
-
     def start(self):
         if self.pomo.start(self.time.time()):
             return "Pomodoro timer started."

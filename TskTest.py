@@ -101,6 +101,112 @@ class TskLogicDoubleFactory:
     def get(*args, **kwargs):
         return TskLogicDouble(*args, **kwargs)
 
+class TskMove(unittest.TestCase):
+    def setUp(self):
+        StorageDouble.reset()
+        #            [Summary, id, due_date]
+        tasksTruth = [["Task1", 1],
+                      ["Task2", 2],
+                      ["Task3", 3],
+                      ["Task4", 4],
+                      ["Task5", 5],
+                      ["Task6", 6],
+                      ["Task7", 7],
+                      ["Task8", 8],
+                      ["Task9", 9]]
+
+        # Add some tasks and set due dates
+        for truth in tasksTruth:
+            task = Task(truth[0], "", 0)
+            task.id = truth[1]
+            StorageDouble.add_task(task)
+
+    def tearDown(self):
+        pass
+
+    def _runTsk(self, args):
+        return goTsk(arguments=args.split(" "),
+            LockFileCls=LockFileDouble,
+            git=TskGitDouble(),
+            shutil=shutilDouble,
+            open=openDouble,
+            os=OsDouble,
+            StorageCls=StorageDouble,
+            time=timeDouble)
+
+    def test_move_invalid_id(self):
+        self.assertFalse(self._runTsk('move 10 0'))
+        self.assertFalse(self._runTsk('move 10 +1'))
+
+    def test_move_front(self):
+        self.assertTrue(self._runTsk('move 4 0'))
+        idOrderTruth = [4, 1, 2, 3, 5, 6, 7, 8, 9]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
+
+    def test_move(self):
+        self.assertTrue(self._runTsk('move 4 1'))
+        idOrderTruth = [1, 4, 2, 3, 5, 6, 7, 8, 9]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
+
+    def test_move_back(self):
+        self.assertTrue(self._runTsk('move 4 100'))
+        idOrderTruth = [1, 2, 3, 5, 6, 7, 8, 9, 4]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
+
+    def test_move_relative_down(self):
+        self.assertTrue(self._runTsk('move 4 +1'))
+        idOrderTruth = [1, 2, 3, 5, 4, 6, 7, 8, 9]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
+
+    def test_move_relative_up(self):
+        self.assertTrue(self._runTsk('move 4 -1'))
+        idOrderTruth = [1, 2, 4, 3, 5, 6, 7, 8, 9]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
+
+    def test_move_relative_top(self):
+        self.assertTrue(self._runTsk('move 4 -100'))
+        idOrderTruth = [4, 1, 2, 3, 5, 6, 7, 8, 9]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
+
+    def test_move_relative_bottom(self):
+        self.assertTrue(self._runTsk('move 4 +100'))
+        idOrderTruth = [1, 2, 3, 5, 6, 7, 8, 9, 4]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
+
+    def test_move_relative_skips_non_open_down(self):
+        StorageDouble.get_task(5).close()
+        StorageDouble.get_task(4).activate()
+        StorageDouble.get_task(3).block("r")
+        self.assertTrue(self._runTsk('move 2 +1'))
+        idOrderTruth = [1, 3, 4, 5, 6, 2, 7, 8, 9]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
+
+    def test_move_relative_skips_non_open_up(self):
+        StorageDouble.get_task(3).close()
+        StorageDouble.get_task(4).block("r")
+        StorageDouble.get_task(5).activate()
+        self.assertTrue(self._runTsk('move 8 -3'))
+        idOrderTruth = [1, 8, 2, 3, 4, 5, 6, 7, 9]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
+
+    def test_move_skips_non_open(self):
+        StorageDouble.get_task(2).close()
+        StorageDouble.get_task(4).block("r")
+        StorageDouble.get_task(6).activate()
+        self.assertTrue(self._runTsk('move 1 3'))
+        idOrderTruth = [2, 3, 4, 5, 6, 1, 7, 8, 9]
+        idOrder = [ t.id for t in StorageDouble.tasks ]
+        self.assertEquals(idOrderTruth, idOrder)
+
 class TskFrontEndTest(unittest.TestCase):
     def setUp(self):
         StorageDouble.reset()

@@ -162,9 +162,22 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
         parser.add_argument('new_pos')
         args = parser.parse_args(args.args)
         if args.new_pos[0] == '+' or args.new_pos[0] == '-':
-            print fe.set_position_relative(args.task_id, int(args.new_pos))
+            new_pos = int(args.new_pos[1:])
+            new_pos = new_pos if args.new_pos[0] == '+' else new_pos*-1
+            if tsk.set_backlog_position_relative(args.task_id, new_pos):
+                if new_pos >= 0:
+                    print "Task {:d} moved {:d} down.".format(args.task_id, new_pos)
+                else:
+                    print "Task {:d} moved {:d} up.".format(args.task_id, -1*new_pos)
+            else:
+                print "Failed to move task {:d}.".format(args.task_id)
+                ret = False
         else:
-            print fe.set_position(args.task_id, int(args.new_pos))
+            if tsk.set_backlog_position(args.task_id, int(args.new_pos)):
+                print "Task {:d} moved to position {:d}.".format(args.task_id, int(args.new_pos))
+            else:
+                print "Failed to move task {:d}.".format(args.task_id)
+                ret = False
     elif args.command == "activate":
         parser = argparse.ArgumentParser(description='Activates a task.')
         parser.add_argument('task_id', type=int)

@@ -79,19 +79,48 @@ class TskLogic:
         return None
 
     def set_backlog_position(self, id, pos):
-        if pos > len(self.tasks):
+        task = self.get_task(id)
+        if task is None:
             return False
 
-        task_ids = [x.id for x in self.tasks]
-        if not id in task_ids:
+        if not task.is_open():
             return False
 
-        index = task_ids.index(id)
-        task = self.tasks[index]
-        self.tasks.remove(task)
-        self.tasks.insert(pos, task)
+        open_tasks = [ x for x in self.tasks if x.is_open() ]
+
+        if pos >= len(open_tasks):
+            pos = len(open_tasks)
+
+        if pos < 1:
+            pos = 0
+
+        index = self.tasks.index(task)
+        if pos < len(open_tasks):
+            replacing_task = open_tasks[pos]
+            self.tasks.remove(task)
+            replacing_index = self.tasks.index(replacing_task)
+        else:
+            replacing_index = len(open_tasks)
+            self.tasks.remove(task)
+        self.tasks.insert(replacing_index, task)
 
         return True
+
+    def set_backlog_position_relative(self, id, offset):
+        task = self.get_task(id)
+        if task is None:
+            return False
+
+        if not task.is_open():
+            return False
+
+        open_tasks = [ x for x in self.tasks if x.is_open() ]
+        pos = open_tasks.index(task)
+        newPos = pos + offset
+        if newPos > pos:
+            newPos += 1
+
+        return self.set_backlog_position(id, newPos)
 
     def sort_backlog(self, alphaSort=None):
         if alphaSort:
@@ -100,31 +129,6 @@ class TskLogic:
 
     def sort_closed(self):
         self.tasks.sort(key = lambda x: -x.date_closed if x.date_closed is not None else None)
-
-    def set_backlog_position_relative(self, id, offset):
-        # Verify the task exists
-        task_ids = [x.id for x in self.tasks]
-        if not id in task_ids:
-            return False
-
-        # Get position and Task instance
-        pos = task_ids.index(id)
-        task = self.tasks[pos]
-
-        # Verify it is in the backlog
-        if not task.is_open():
-            return False
-
-        # check current position+offset for out of bounds
-        newPos = pos + offset
-
-        if newPos > len(self.tasks):
-            newPos = len(self.tasks)
-        if newPos < 0:
-            newPos = 0
-
-        # move to new position
-        return self.set_backlog_position(id, newPos)
 
     def set_active(self, id):
         task_ids = [x.id for x in self.tasks]
@@ -292,71 +296,6 @@ class SortingTest(unittest.TestCase):
         self.assertEquals(self.tsk.get_task(self.id3), tasks[0])
         self.assertEquals(self.tsk.get_task(self.id1), tasks[1])
         self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
-
-class TaskBacklogTest(unittest.TestCase):
-    def setUp(self):
-        self.tsk = TskLogic()
-        _ , self.id1 = self.tsk.add("Task1")
-        _ , self.id2 = self.tsk.add("Task2")
-        _ , self.id3 = self.tsk.add("Task3")
-
-    def test_backlog_default_order(self):
-        tasks = self.tsk.list_tasks()
-        self.assertEquals(self.tsk.get_task(self.id1), tasks[0])
-        self.assertEquals(self.tsk.get_task(self.id2), tasks[1])
-        self.assertEquals(self.tsk.get_task(self.id3), tasks[2])
-
-    def test_backlog_set_pos(self):
-        self.assertTrue(self.tsk.set_backlog_position(self.id2, 0))
-        tasks = self.tsk.list_tasks()
-        self.assertEquals(self.tsk.get_task(self.id2), tasks[0])
-        self.assertEquals(self.tsk.get_task(self.id1), tasks[1])
-        self.assertEquals(self.tsk.get_task(self.id3), tasks[2])
-
-    def test_backlog_set_pos_invalid_pos(self):
-        self.assertFalse(self.tsk.set_backlog_position(self.id2, 5))
-
-    def test_backlog_set_pos_invalid_id(self):
-        self.assertFalse(self.tsk.set_backlog_position(10, 1))
-
-    def test_backlog_set_pos_bottom(self):
-        self.assertTrue(self.tsk.set_backlog_position(self.id2, 3))
-        tasks = self.tsk.list_tasks()
-        self.assertEquals(self.tsk.get_task(self.id1), tasks[0])
-        self.assertEquals(self.tsk.get_task(self.id3), tasks[1])
-        self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
-
-    def test_backlog_set_pos_rel_positive(self):
-        self.assertTrue(self.tsk.set_backlog_position_relative(self.id2, 1))
-        tasks = self.tsk.list_tasks()
-        self.assertEquals(self.tsk.get_task(self.id1), tasks[0])
-        self.assertEquals(self.tsk.get_task(self.id3), tasks[1])
-        self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
-
-    def test_backlog_set_pos_rel_negative(self):
-        self.assertTrue(self.tsk.set_backlog_position_relative(self.id2, -1))
-        tasks = self.tsk.list_tasks()
-        self.assertEquals(self.tsk.get_task(self.id2), tasks[0])
-        self.assertEquals(self.tsk.get_task(self.id1), tasks[1])
-        self.assertEquals(self.tsk.get_task(self.id3), tasks[2])
-
-    def test_backlog_set_pos_rel_oob_negative(self):
-        self.assertTrue(self.tsk.set_backlog_position_relative(self.id2, -100))
-        tasks = self.tsk.list_tasks()
-        self.assertEquals(self.tsk.get_task(self.id2), tasks[0])
-        self.assertEquals(self.tsk.get_task(self.id1), tasks[1])
-        self.assertEquals(self.tsk.get_task(self.id3), tasks[2])
-
-    def test_backlog_set_pos_rel_oob_positive(self):
-        self.assertTrue(self.tsk.set_backlog_position_relative(self.id2, 100))
-        tasks = self.tsk.list_tasks()
-        self.assertEquals(self.tsk.get_task(self.id1), tasks[0])
-        self.assertEquals(self.tsk.get_task(self.id3), tasks[1])
-        self.assertEquals(self.tsk.get_task(self.id2), tasks[2])
-
-    def test_backlog_set_pos_rel_not_in_backlog(self):
-        self.tsk.get_task(self.id1).close()
-        self.assertFalse(self.tsk.set_backlog_position_relative(self.id1, 1))
 
 class TaskIdTest(unittest.TestCase):
     def setUp(self):
