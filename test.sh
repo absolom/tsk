@@ -1,9 +1,11 @@
 #! /bin/bash
+set -e
 
-python FrontEnd.py || exit 1
-python Pomo.py || exit 1
-python Render.py || exit 1
-python Storage.py || exit 1
-python Task.py || exit 1
-python TaskFileParser.py || exit 1
-python TskLogic.py || exit 1
+python FrontEnd.py
+python Pomo.py
+python Render.py
+python Storage.py
+python Task.py
+python TaskFileParser.py
+python TskLogic.py
+python TskTest.py
