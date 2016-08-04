@@ -114,12 +114,6 @@ class TskFrontEnd:
         else:
             return "Pomodoro timer could not be canceled."
 
-    def activate(self, id):
-        if self.tsk.set_active(id):
-            return "Task {:d} activated.".format(id)
-        else:
-            return "Failed to activate task {:d}.".format(id)
-
     def monitor(self):
         while self.pomo.monitor(self.time.time()):
             self.time.sleep(1)
@@ -190,14 +184,6 @@ class TskFrontEndTest(unittest.TestCase):
         self.assertEquals(2, len(self.dbl1.set_closed_max_called))
         self.assertEquals(self.fe.closed_max, self.dbl1.set_closed_max_max[0])
         self.assertEquals(self.fe.closed_max_status, self.dbl1.set_closed_max_max[1])
-
-    def test_activate(self):
-        ret = self.fe.activate(10)
-        self.assertEquals("Task 10 activated.", ret)
-
-    def test_activate_fail(self):
-        ret = self.fe.activate(11)
-        self.assertEquals("Failed to activate task 11.", ret)
 
 class TskFrontEndTest_EditCommand(unittest.TestCase):
     def setUp(self):

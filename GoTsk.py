@@ -169,7 +169,11 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
         parser = argparse.ArgumentParser(description='Activates a task.')
         parser.add_argument('task_id', type=int)
         args = parser.parse_args(args.args)
-        print fe.activate(args.task_id)
+        if tsk.set_active(args.task_id):
+            print "Task {:d} activated.".format(args.task_id)
+        else:
+            print "Failed to activate task {:d}.".format(args.task_id)
+            ret = False
     elif args.command == "close":
         parser = argparse.ArgumentParser(description='Changes state of task to closed state.')
         parser.add_argument('task_id', type=int)

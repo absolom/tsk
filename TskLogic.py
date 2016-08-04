@@ -215,10 +215,6 @@ class TskTest(unittest.TestCase):
     def test_get_active_none(self):
         self.assertIsNone(self.tsk.get_active())
 
-    def test_set_active(self):
-        _ , id = self.tsk.add("Task1Summary")
-        self.assertTrue(self.tsk.set_active(id))
-
     def test_get_active(self):
         _ , id = self.tsk.add("Task1Summary")
         self.tsk.set_active(id)
@@ -230,9 +226,6 @@ class TskTest(unittest.TestCase):
         _ , id2 = self.tsk.add("Task2Summary")
         self.tsk.set_active(id2)
         self.assertEquals(id2, self.tsk.get_active())
-
-    def test_set_active_nonexist(self):
-        self.assertFalse(self.tsk.set_active(0))
 
     def test_list_tasks(self):
         self.tsk.add("Task1Summary")
@@ -273,12 +266,6 @@ class TaskStateTest(unittest.TestCase):
         self.tsk.set_open(id)
         task = self.tsk.get_task(id)
         self.assertTrue(task.is_open())
-
-    def test_set_active_flags_task_as_active(self):
-        _ , id = self.tsk.add("Task1")
-        self.tsk.set_active(id)
-        task = self.tsk.get_task(id)
-        self.assertTrue(task.is_active())
 
     def test_only_one_active_task_at_a_time(self):
         _ , id = self.tsk.add("Task1")

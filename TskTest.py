@@ -243,5 +243,11 @@ class TskFrontEndTest(unittest.TestCase):
 
         self.assertFalse(self._runTsk('block 1 Reason'))
 
+    def test_activate(self):
+        self.assertTrue(self._runTsk('activate 4'))
+        self.assertTrue(StorageDouble.get_task(4).is_active())
+
+        self.assertFalse(self._runTsk('activate 1'))
+
 if __name__ == '__main__':
     unittest.main()
