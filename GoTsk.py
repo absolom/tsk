@@ -74,7 +74,9 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
                        "set_due_date",
                        "remove_due_date",
                        "time_estimate",
-                       "time_log" ]
+                       "time_log",
+                       "push",
+                       "pull" ]
 
     parser = argparse.ArgumentParser(description='Self task management program.')
     parser.add_argument('command',  choices=valid_commands)
@@ -258,6 +260,18 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
     elif args.command == "monitor":
         fe.monitor()
         skip_git = True
+    elif args.command == "push":
+        skip_git = True
+        if git.push():
+            print "Successfully pushed latest to remote."
+        else:
+            print "Failed to push latest to remote."
+    elif args.command == "pull":
+        skip_git = True
+        if git.pull():
+            print "Successfully pulled latest from remote."
+        else:
+            print "Failed to pull from remote."
 
     storage = StorageCls(time)
     storage.tasks = tsk.tasks

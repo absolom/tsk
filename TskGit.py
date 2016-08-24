@@ -10,9 +10,22 @@ class TskGit:
             shell=True, stdout=self.subprocess.PIPE)
         proc.wait()
 
+    def push(self):
+        proc = self.subprocess.Popen("cd {:s} && git push".format(self.tskDir), shell=True, stdout=self.subprocess.PIPE)
+        proc.wait()
+        if proc.returncode != 0:
+            return False
+        return True
+
+    def pull(self):
+        proc = self.subprocess.Popen("cd {:s} && git pull".format(self.tskDir), shell=True, stdout=self.subprocess.PIPE)
+        proc.wait()
+        if proc.returncode != 0:
+            return False
+        return True
 
     def init(self):
-        proc = subprocess.Popen("git init {:s}".format(self.tskDir), shell=True, stdout=subprocess.PIPE)
+        proc = self.subprocess.Popen("git init {:s}".format(self.tskDir), shell=True, stdout=subprocess.PIPE)
         proc.wait()
         if proc.returncode != 0:
             return False
