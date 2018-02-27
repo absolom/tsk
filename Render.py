@@ -6,6 +6,31 @@ from TskLogic import TskLogic
 from Pomo import Pomo
 from datetime import datetime
 
+class Colors:
+    def __init__(self):
+        self.colorStart = {
+            "BLACK"         : "\033[30m",
+            "RED"           : "\033[31m",
+            "GREEN"         : "\033[32m",
+            "YELLOW"        : "\033[33m",
+            "BLUE"          : "\033[34m",
+            "MAGENTA"       : "\033[35m",
+            "CYAN"          : "\033[36m",
+            "LIGHT_GREY"    : "\033[37m",
+            "DARK_GREY"     : "\033[90m",
+            "LIGHT_RED"     : "\033[91m",
+            "LIGHT_GREEN"   : "\033[92m",
+            "LIGHT_YELLOW"  : "\033[93m",
+            "LIGHT_BLUE"    : "\033[94m",
+            "LIGHT_MAGENTA" : "\033[95m",
+            "LIGHT_CYAN"    : "\033[96m",
+            "WHITE"         : "\033[97m",
+            "NONE"          : "\033[39m"
+        }
+
+    def getCode(self, clr):
+        return self.colorStart[clr]
+
 class PomoRender:
     def __init__(self, pomo):
         self.pomo = pomo
@@ -23,12 +48,13 @@ class PomoRender:
         return "Pomodoro: {:d}:{:02d}".format(minutes, seconds)
 
 class TskTextRender:
-    def __init__(self, tsk, datetime=datetime):
+    def __init__(self, tsk, colors=Colors(), datetime=datetime):
         self.tsk = tsk
         self.backlog_max = 4
         self.blocked_max = 10
         self.closed_max = 20
         self.datetime = datetime
+        self.colors = colors
 
     def _get_estimate_string(self, task):
         estimate_string = ''
@@ -98,7 +124,8 @@ class TskTextRender:
             return "No Active Task."
 
         active_task = self.tsk.get_task(self.tsk.get_active())
-        return "{:s}\n{:s}".format("Active Task", self._task_to_string(active_task))
+        return "{:s}{:s}{:s}\n{:s}".format(self.colors.getCode("WHITE"), "Active Task",
+                                           self.colors.getCode("NONE"), self._task_to_string(active_task))
 
     def get_task_string(self, id):
         task = self.tsk.get_task(id)
@@ -116,7 +143,7 @@ class TskTextRender:
             dueDateString = self._get_due_date_string(task, t)
             return "\n{:<3d} {:s} {:s}{:s}".format(task.id, dueDateString, task.summary, self._get_estimate_string(task))
 
-        return "Backlog" + self._generate_summary_string(include_test, render, self.backlog_max)
+        return "{:s}Backlog{:s}".format(self.colors.getCode("WHITE"), self.colors.getCode("NONE")) + self._generate_summary_string(include_test, render, self.backlog_max)
 
     def get_closed_summary_string(self):
 
@@ -145,7 +172,7 @@ class TskTextRender:
         def render(task):
             return  "\n{:<3d}   {:s}\n          {:s}".format(task.id, task.summary, task.blocked_reason)
 
-        return "Blocked" + self._generate_summary_string(include_test, render, self.blocked_max)
+        return "{:s}Blocked{:s}".format(self.colors.getCode("WHITE"), self.colors.getCode("NONE")) + self._generate_summary_string(include_test, render, self.blocked_max)
 
     def set_backlog_max(self, mx):
         self.backlog_max = mx
@@ -155,6 +182,10 @@ class TskTextRender:
 
     def set_closed_max(self, mx):
         self.closed_max = mx
+
+class ColorsDouble:
+    def getCode(self, clr):
+        return ""
 
 class StringsTest(unittest.TestCase):
     def setUp(self):
@@ -167,7 +198,7 @@ class StringsTest(unittest.TestCase):
         for i in range(5, 25):
             self.tsk.add("Task%d" % i)
 
-        self.tskfe = TskTextRender(self.tsk)
+        self.tskfe = TskTextRender(self.tsk, colors=ColorsDouble())
         self.tskfe.set_backlog_max(4)
         self.tskfe.set_blocked_max(4)
 
@@ -201,7 +232,7 @@ Task2 Description"""
         self.tsk = TskLogic()
         self.tsk.add("Task1")
         self.tsk.add("Task2", "Task2 Description")
-        self.tskfe = TskTextRender(self.tsk)
+        self.tskfe = TskTextRender(self.tsk, ColorsDouble())
         backlog_truth = """Backlog
 1     Task1
 2     Task2"""
@@ -221,7 +252,7 @@ Task2 Description"""
         self.tsk.get_task(4).date_due = 101 + 60*60*24*6
         self.tsk.get_task(5).date_due = 101 + 60*60*24*6*4
 
-        self.tskfe = TskTextRender(self.tsk)
+        self.tskfe = TskTextRender(self.tsk, ColorsDouble())
         self.tskfe.set_backlog_max(5)
         backlog_truth = """Backlog
 1   ! Task1
@@ -246,7 +277,7 @@ Task2 Description"""
 
         self.tsk.get_task(3).log_time(30*60*3)
 
-        self.tskfe = TskTextRender(self.tsk)
+        self.tskfe = TskTextRender(self.tsk, ColorsDouble())
         self.tskfe.set_backlog_max(5)
         backlog_truth = """Backlog
 1     Task1 (0/1)
@@ -279,7 +310,7 @@ Task2 Description"""
         self.tsk.add("Task3")
         self.tsk.add("Task4")
 
-        self.tskfe = TskTextRender(self.tsk)
+        self.tskfe = TskTextRender(self.tsk, ColorsDouble())
         self.tskfe.set_backlog_max(4)
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string())
 
@@ -294,7 +325,7 @@ Task2 Description"""
         self.assertEquals(backlog_truth, self.tskfe.get_backlog_summary_string())
 
     def test_get_backlog_summary_none(self):
-        self.tskfe = TskTextRender(TskLogic())
+        self.tskfe = TskTextRender(TskLogic(), ColorsDouble())
         self.assertEquals("Backlog", self.tskfe.get_backlog_summary_string())
 
     def test_get_backlog_summary_skips_closed(self):
