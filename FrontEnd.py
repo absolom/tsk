@@ -36,6 +36,10 @@ class TskFrontEnd:
 
     def edit_task(self, id):
         filename = '/tmp/tsk.tmp'
+        if id is None:
+            id = self.tsk.get_active()
+            if id is None:
+                return "Please provide a task id."
         task = self.tsk.get_task(id)
         if not task:
             return "Task {:d} could not be found.".format(id)

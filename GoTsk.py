@@ -115,7 +115,7 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
 
     if args.command == "edit_task":
         parser = argparse.ArgumentParser(description='Opens text editor to edit task contents.')
-        parser.add_argument('task_id', type=int)
+        parser.add_argument('task_id', nargs='?', type=int, default=None)
         args = parser.parse_args(args.args)
         print fe.edit_task(args.task_id)
     elif args.command == "show_task":
