@@ -54,8 +54,8 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
     fe = TskFrontEndCls(tsk, pomo, TskTextRenderCls(tsk), PomoRenderCls(pomo), time, subprocess,
         TaskFileParserCls())
 
-    valid_commands = [ "edit_task",
-                       "add_task",
+    valid_commands = [ "edit",
+                       "add",
                        "status",
                        "show_backlog",
                        "sort_backlog",
@@ -69,7 +69,7 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
                        "monitor",
                        "move",
                        "closed",
-                       "show_task",
+                       "show",
                        "init",
                        "set_due_date",
                        "remove_due_date",
@@ -113,18 +113,18 @@ def goTsk(git=TskGit(".tsk"), LockFileCls=LockFile, TskLogicFactory=TskLogicFact
         print "No tskfile database found."
         return False
 
-    if args.command == "edit_task":
+    if args.command == "edit":
         parser = argparse.ArgumentParser(description='Opens text editor to edit task contents.')
         parser.add_argument('task_id', nargs='?', type=int, default=None)
         args = parser.parse_args(args.args)
         print fe.edit_task(args.task_id)
-    elif args.command == "show_task":
+    elif args.command == "show":
         parser = argparse.ArgumentParser(description='Shows details of task.')
         parser.add_argument('task_id', type=int)
         args = parser.parse_args(args.args)
         print fe.show_task(args.task_id)
         skip_git = True
-    elif args.command == "add_task":
+    elif args.command == "add":
         parser = argparse.ArgumentParser(description='Adds a new task.')
         parser.add_argument('summary')
         parser.add_argument('--description', default="")
