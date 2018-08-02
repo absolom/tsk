@@ -172,7 +172,7 @@ class TskTextRender:
         def render(task):
             return  "\n{:<3d}   {:s}\n          {:s}".format(task.id, task.summary, task.blocked_reason)
 
-        return "{:s}Blocked{:s}".format(self.colors.getCode("WHITE"), self.colors.getCode("NONE")) + self._generate_summary_string(include_test, render, self.blocked_max)
+        return "{:s}Blocked{:s}".format(self.colors.getCode("YELLOW"), self.colors.getCode("NONE")) + self._generate_summary_string(include_test, render, self.blocked_max)
 
     def set_backlog_max(self, mx):
         self.backlog_max = mx
